@@ -1,15 +1,23 @@
 /* ═══════════════════════════════════════════════
-   TEAM ESP — MAIN JAVASCRIPT
+   TEAM ESP — MAIN JS  v3
+   Features: Single product+tiers, Cart, Click-to-edit, Parallax
 ═══════════════════════════════════════════════ */
 
+// ─── STATE ───────────────────────────────────────────
 let selectedRating = 0;
 let settings = {};
+let productData = null;
+let cart = JSON.parse(localStorage.getItem('teamesp_cart') || '[]');
+let editMode = false;
+let editToken = localStorage.getItem('teamesp_edit_token') || null;
+let contentMap = {};   // key → saved text from DB
+let saveTimer = null;
 
 // ─── LOADER ──────────────────────────────────────────
 window.addEventListener('load', () => {
   setTimeout(() => {
-    const loader = document.getElementById('loader');
-    if (loader) loader.classList.add('hidden');
+    const l = document.getElementById('loader');
+    if (l) l.classList.add('hidden');
     document.body.style.overflow = '';
     initParticles();
     initCounters();
@@ -19,604 +27,586 @@ window.addEventListener('load', () => {
   document.body.style.overflow = 'hidden';
 });
 
-// ─── MOUSE PARALLAX ──────────────────────────────────
+// ─── PARALLAX ────────────────────────────────────────
 function initParallax() {
-  const hero = document.querySelector('.hero');
-  if (!hero) return;
-
-  // Hero parallax layers
-  const heroChar   = document.querySelector('.pubg-char');
-  const heroGlow   = document.querySelector('.char-glow');
-  const heroBgText = document.querySelector('.hero-bg-text');
-  const heroLeft   = document.querySelector('.hero-left');
-  const hfcCards   = document.querySelectorAll('.hfc');
-  const particles  = document.getElementById('particles');
-
-  // Subtle section floating elements
-  const aboutCards  = document.querySelectorAll('.about-card');
-  const stepIcons   = document.querySelectorAll('.step-icon');
-  const payCards    = document.querySelectorAll('.payment-card');
-  const sectionTitles = document.querySelectorAll('.section-title');
-
-  let mouseX = 0, mouseY = 0;
-  let curX = 0, curY = 0;
-  let ticking = false;
+  const heroChar  = document.querySelector('.pubg-char');
+  const heroGlow  = document.querySelector('.char-glow');
+  const heroBgTxt = document.querySelector('.hero-bg-text');
+  const heroLeft  = document.querySelector('.hero-left');
+  const particles = document.getElementById('particles');
+  const hfcCards  = document.querySelectorAll('.hfc');
+  let cx=0,cy=0,mx=0,my=0,ticking=false;
 
   document.addEventListener('mousemove', e => {
-    // Normalize to -1 → +1 from center
-    mouseX = (e.clientX / window.innerWidth  - 0.5) * 2;
-    mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
-    if (!ticking) {
-      requestAnimationFrame(applyParallax);
-      ticking = true;
-    }
+    mx = (e.clientX/window.innerWidth  - 0.5)*2;
+    my = (e.clientY/window.innerHeight - 0.5)*2;
+    if (!ticking) { requestAnimationFrame(doParallax); ticking=true; }
   });
 
-  function applyParallax() {
-    ticking = false;
-    // Smooth lerp
-    curX += (mouseX - curX) * 0.06;
-    curY += (mouseY - curY) * 0.06;
-
-    const isHeroVisible = window.scrollY < window.innerHeight;
-
-    // ── HERO — STRONG parallax ──────────────────────
-    if (isHeroVisible) {
-      if (heroChar) {
-        heroChar.style.transform = `translate(${curX * -22}px, ${curY * -18}px)`;
-        heroChar.style.filter = `drop-shadow(0 0 30px rgba(245,166,35,0.3)) drop-shadow(${curX * -4}px ${curY * -4}px 15px rgba(245,166,35,0.15))`;
-      }
-      if (heroGlow) {
-        heroGlow.style.transform = `translate(calc(-50% + ${curX * -30}px), calc(-50% + ${curY * -25}px))`;
-      }
-      if (heroBgText) {
-        heroBgText.style.transform = `translate(${curX * 12}px, ${curY * 8}px)`;
-      }
-      if (heroLeft) {
-        heroLeft.style.transform = `translate(${curX * 8}px, ${curY * 6}px)`;
-      }
-      if (particles) {
-        particles.style.transform = `translate(${curX * 15}px, ${curY * 10}px)`;
-      }
-      hfcCards.forEach((card, i) => {
-        const depth = (i + 1) * 0.4;
-        card.style.transform = `translate(${curX * 6 * depth}px, ${curY * 4 * depth}px)`;
-      });
+  function doParallax() {
+    ticking=false;
+    cx += (mx-cx)*0.06; cy += (my-cy)*0.06;
+    if (window.scrollY < window.innerHeight) {
+      if (heroChar)  heroChar.style.transform  = `translate(${cx*-22}px,${cy*-18}px)`;
+      if (heroGlow)  heroGlow.style.transform  = `translate(calc(-50% + ${cx*-30}px),calc(-50% + ${cy*-25}px))`;
+      if (heroBgTxt) heroBgTxt.style.transform = `translate(${cx*12}px,${cy*8}px)`;
+      if (heroLeft)  heroLeft.style.transform  = `translate(${cx*8}px,${cy*6}px)`;
+      if (particles) particles.style.transform = `translate(${cx*15}px,${cy*10}px)`;
+      hfcCards.forEach((c,i)=>{ const d=(i+1)*0.4; c.style.transform=`translate(${cx*6*d}px,${cy*4*d}px)`; });
     }
-
-    // ── GLOBAL SECTIONS — SUBTLE parallax ──────────
-    aboutCards.forEach((el, i) => {
-      const d = (i % 3 === 0) ? 0.8 : (i % 3 === 1) ? 1.2 : 0.6;
-      el.style.transform = `translate(${curX * 4 * d}px, ${curY * 3 * d}px)`;
-    });
-    stepIcons.forEach((el, i) => {
-      el.style.transform = `translate(${curX * (3 + i * 0.5)}px, ${curY * (2 + i * 0.4)}px)`;
-    });
-    payCards.forEach((el, i) => {
-      const d = [0.6, 1.0, 0.8][i] || 0.8;
-      el.style.transform = `translate(${curX * 5 * d}px, ${curY * 4 * d}px)`;
-    });
-    sectionTitles.forEach((el, i) => {
-      const d = (i % 2 === 0) ? 1.5 : 1.0;
-      el.style.transform = `translate(${curX * 3 * d}px, ${curY * 2 * d}px)`;
-    });
-
-    if (ticking === false) {
-      requestAnimationFrame(applyParallax);
-      ticking = true;
-    }
+    document.querySelectorAll('.about-card').forEach((e,i)=>{ const d=[0.8,1.2,0.6][i%3]||1; e.style.transform=`translate(${cx*4*d}px,${cy*3*d}px)`; });
+    document.querySelectorAll('.step-icon').forEach((e,i)=>{ e.style.transform=`translate(${cx*(3+i*0.5)}px,${cy*(2+i*0.4)}px)`; });
+    document.querySelectorAll('.payment-card').forEach((e,i)=>{ const d=[0.6,1.0,0.8][i]||0.8; e.style.transform=`translate(${cx*5*d}px,${cy*4*d}px)`; });
+    if (!ticking) { requestAnimationFrame(doParallax); ticking=true; }
   }
-
-  // Mobile tilt support (device orientation)
   window.addEventListener('deviceorientation', e => {
-    if (e.beta === null || e.gamma === null) return;
-    mouseX = Math.max(-1, Math.min(1, e.gamma / 20));
-    mouseY = Math.max(-1, Math.min(1, (e.beta - 40) / 20));
+    if (e.gamma===null) return;
+    mx = Math.max(-1,Math.min(1,e.gamma/20));
+    my = Math.max(-1,Math.min(1,(e.beta-40)/20));
   });
 }
 
 // ─── PARTICLES ───────────────────────────────────────
 function initParticles() {
-  const container = document.getElementById('particles');
-  if (!container) return;
-  for (let i = 0; i < 30; i++) {
-    const p = document.createElement('div');
-    p.className = 'particle';
-    const size = Math.random() * 4 + 1;
-    const x = Math.random() * 100;
-    const delay = Math.random() * 10;
-    const duration = Math.random() * 15 + 10;
-    const gold = Math.random() > 0.5;
-    p.style.cssText = `
-      left: ${x}%;
-      bottom: -10px;
-      width: ${size}px;
-      height: ${size}px;
-      background: ${gold ? '#f5a623' : '#ffffff'};
-      opacity: ${gold ? 0.6 : 0.2};
-      animation-delay: ${delay}s;
-      animation-duration: ${duration}s;
-    `;
-    container.appendChild(p);
+  const c = document.getElementById('particles');
+  if (!c) return;
+  for (let i=0;i<30;i++) {
+    const p=document.createElement('div'); p.className='particle';
+    const size=Math.random()*4+1, gold=Math.random()>.5;
+    p.style.cssText=`left:${Math.random()*100}%;bottom:-10px;width:${size}px;height:${size}px;background:${gold?'#f5a623':'#fff'};opacity:${gold?.6:.2};animation-delay:${Math.random()*10}s;animation-duration:${Math.random()*15+10}s;`;
+    c.appendChild(p);
   }
 }
 
 // ─── NAVBAR ──────────────────────────────────────────
 const navbar = document.getElementById('navbar');
 window.addEventListener('scroll', () => {
-  if (window.scrollY > 50) {
-    navbar.classList.add('scrolled');
-  } else {
-    navbar.classList.remove('scrolled');
-  }
+  navbar.classList.toggle('scrolled', window.scrollY>50);
   updateActiveNav();
 });
-
 function updateActiveNav() {
-  const sections = document.querySelectorAll('section[id]');
-  const scrollY = window.scrollY + 100;
-  sections.forEach(sec => {
-    const top = sec.offsetTop;
-    const height = sec.offsetHeight;
-    const id = sec.getAttribute('id');
-    const link = document.querySelector(`.nav-link[href="#${id}"]`);
-    if (link) {
-      if (scrollY >= top && scrollY < top + height) {
-        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-        link.classList.add('active');
-      }
+  const sy = window.scrollY+100;
+  document.querySelectorAll('section[id]').forEach(sec => {
+    const link = document.querySelector(`.nav-link[href="#${sec.id}"]`);
+    if (link && sy>=sec.offsetTop && sy<sec.offsetTop+sec.offsetHeight) {
+      document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
+      link.classList.add('active');
     }
   });
 }
-
-// ─── HAMBURGER ───────────────────────────────────────
-const hamburger = document.getElementById('hamburger');
-const mobileMenu = document.getElementById('mobileMenu');
-hamburger.addEventListener('click', () => {
+const hamburger=document.getElementById('hamburger'), mobileMenu=document.getElementById('mobileMenu');
+hamburger.addEventListener('click',()=>{
   mobileMenu.classList.toggle('open');
-  const spans = hamburger.querySelectorAll('span');
-  if (mobileMenu.classList.contains('open')) {
-    spans[0].style.transform = 'rotate(45deg) translate(5px, 5px)';
-    spans[1].style.opacity = '0';
-    spans[2].style.transform = 'rotate(-45deg) translate(5px, -5px)';
-  } else {
-    spans.forEach(s => { s.style.transform = ''; s.style.opacity = ''; });
-  }
+  const s=hamburger.querySelectorAll('span');
+  if (mobileMenu.classList.contains('open')) { s[0].style.transform='rotate(45deg) translate(5px,5px)';s[1].style.opacity='0';s[2].style.transform='rotate(-45deg) translate(5px,-5px)'; }
+  else s.forEach(x=>{x.style.transform='';x.style.opacity='';});
 });
 function closeMobileMenu() {
   mobileMenu.classList.remove('open');
-  const spans = hamburger.querySelectorAll('span');
-  spans.forEach(s => { s.style.transform = ''; s.style.opacity = ''; });
+  hamburger.querySelectorAll('span').forEach(s=>{s.style.transform='';s.style.opacity='';});
 }
 
 // ─── DATA LOADING ────────────────────────────────────
 async function loadData() {
   try {
-    const [settingsRes, productsRes, reviewsRes, faqRes] = await Promise.all([
-      fetch('/api/settings'),
-      fetch('/api/products'),
-      fetch('/api/reviews'),
-      fetch('/api/faq')
+    const [sRes,pRes,rRes,fRes,cRes] = await Promise.all([
+      fetch('/api/settings'), fetch('/api/product'),
+      fetch('/api/reviews'),  fetch('/api/faq'), fetch('/api/content')
     ]);
-    const s = await settingsRes.json();
-    const products = await productsRes.json();
-    const reviews = await reviewsRes.json();
-    const faq = await faqRes.json();
-    settings = s;
-    applySettings(s);
-    renderProducts(products);
+    settings   = await sRes.json();
+    productData= await pRes.json();
+    const reviews = await rRes.json();
+    const faq     = await fRes.json();
+    contentMap    = await cRes.json();
+    applySettings(settings);
+    renderProduct(productData);
     renderReviews(reviews);
     renderFAQ(faq);
-  } catch (e) {
-    console.error('Failed to load data:', e);
-  }
+    applyContent();
+    updateCartUI();
+    // Restore edit mode if token still valid
+    if (editToken) toggleEditMode(true, true);
+  } catch(e) { console.error('loadData',e); }
 }
 
 function applySettings(s) {
-  const tagline = document.getElementById('hero-tagline');
-  if (tagline) tagline.textContent = s.tagline || '';
+  const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+  const lnk = (id,v) => { const el=document.getElementById(id); if(el) el.href=v; };
+  const t = id => { const el=document.getElementById(id); if(el) el.textContent=s[id.replace('-','_')]||''; };
 
-  const tel = document.getElementById('nav-telegram');
-  const wa  = document.getElementById('nav-whatsapp');
-  const ig  = document.getElementById('nav-instagram');
-  const dc  = document.getElementById('nav-discord');
-  if (tel) tel.href = s.telegram ? `https://t.me/${s.telegram.replace('@', '')}` : '#';
-  if (wa)  wa.href  = s.whatsapp ? `https://wa.me/${s.whatsapp.replace(/[^0-9]/g, '')}` : '#';
-  if (ig)  ig.href  = s.instagram ? `https://instagram.com/${s.instagram}` : '#';
-  if (dc)  dc.href  = s.discord ? `https://discord.gg/${s.discord}` : '#';
+  document.getElementById('hero-tagline') && (document.getElementById('hero-tagline').textContent = contentMap['hero-tagline'] || s.tagline || '');
 
-  const binId   = document.getElementById('binance-id');
-  const binName = document.getElementById('binance-name');
-  const epNum   = document.getElementById('easypaisa-num');
-  const epName  = document.getElementById('easypaisa-name');
-  const jcNum   = document.getElementById('jazzcash-num');
-  const jcName  = document.getElementById('jazzcash-name');
-  if (binId)   binId.textContent   = s.binance_id || '';
-  if (binName) binName.textContent = s.binance_name || '';
-  if (epNum)   epNum.textContent   = s.easypaisa || '';
-  if (epName)  epName.textContent  = s.easypaisa_name || '';
-  if (jcNum)   jcNum.textContent   = s.jazzcash || '';
-  if (jcName)  jcName.textContent  = s.jazzcash_name || '';
+  lnk('nav-telegram', s.telegram?`https://t.me/${s.telegram.replace('@','')}`:'#');
+  lnk('nav-whatsapp', s.whatsapp?`https://wa.me/${s.whatsapp.replace(/[^0-9]/g,'')}`:'#');
+  lnk('nav-instagram',s.instagram?`https://instagram.com/${s.instagram}`:'#');
+  lnk('nav-discord',  s.discord?`https://discord.gg/${s.discord}`:'#');
 
-  const ctTel  = document.getElementById('ct-telegram');
-  const ctWa   = document.getElementById('ct-whatsapp');
-  const ctIg   = document.getElementById('ct-instagram');
-  const ctDc   = document.getElementById('ct-discord');
-  const ctTelT = document.getElementById('ct-telegram-text');
-  const ctWaT  = document.getElementById('ct-whatsapp-text');
-  const ctIgT  = document.getElementById('ct-instagram-text');
-  const ctDcT  = document.getElementById('ct-discord-text');
-  if (ctTel)  ctTel.href  = s.telegram ? `https://t.me/${s.telegram.replace('@', '')}` : '#';
-  if (ctWa)   ctWa.href   = s.whatsapp ? `https://wa.me/${s.whatsapp.replace(/[^0-9]/g, '')}` : '#';
-  if (ctIg)   ctIg.href   = s.instagram ? `https://instagram.com/${s.instagram}` : '#';
-  if (ctDc)   ctDc.href   = s.discord ? `https://discord.gg/${s.discord}` : '#';
-  if (ctTelT) ctTelT.textContent = s.telegram || '';
-  if (ctWaT)  ctWaT.textContent  = s.whatsapp || '';
-  if (ctIgT)  ctIgT.textContent  = s.instagram || '';
-  if (ctDcT)  ctDcT.textContent  = s.discord || '';
+  set('binance-id',   s.binance_id||'');  set('binance-name',   s.binance_name||'');
+  set('easypaisa-num',s.easypaisa||'');   set('easypaisa-name', s.easypaisa_name||'');
+  set('jazzcash-num', s.jazzcash||'');    set('jazzcash-name',  s.jazzcash_name||'');
 
-  const ftTel = document.getElementById('ft-telegram');
-  const ftWa  = document.getElementById('ft-whatsapp');
-  const ftIg  = document.getElementById('ft-instagram');
-  const ftDc  = document.getElementById('ft-discord');
-  if (ftTel) ftTel.href = s.telegram ? `https://t.me/${s.telegram.replace('@', '')}` : '#';
-  if (ftWa)  ftWa.href  = s.whatsapp ? `https://wa.me/${s.whatsapp.replace(/[^0-9]/g, '')}` : '#';
-  if (ftIg)  ftIg.href  = s.instagram ? `https://instagram.com/${s.instagram}` : '#';
-  if (ftDc)  ftDc.href  = s.discord ? `https://discord.gg/${s.discord}` : '#';
+  lnk('ct-telegram',  s.telegram?`https://t.me/${s.telegram.replace('@','')}`:'#');
+  lnk('ct-whatsapp',  s.whatsapp?`https://wa.me/${s.whatsapp.replace(/[^0-9]/g,'')}`:'#');
+  lnk('ct-instagram', s.instagram?`https://instagram.com/${s.instagram}`:'#');
+  lnk('ct-discord',   s.discord?`https://discord.gg/${s.discord}`:'#');
+  set('ct-telegram-text',s.telegram||''); set('ct-whatsapp-text',s.whatsapp||'');
+  set('ct-instagram-text',s.instagram||''); set('ct-discord-text',s.discord||'');
 
-  const sc = document.getElementById('stat-customers');
-  if (sc) sc.setAttribute('data-target', parseInt(s.happy_customers || '5000'));
-  const sr = document.getElementById('stat-rating');
-  if (sr) sr.textContent = (s.rating || '4.9/5').split('/')[0];
+  lnk('ft-telegram',  s.telegram?`https://t.me/${s.telegram.replace('@','')}`:'#');
+  lnk('ft-whatsapp',  s.whatsapp?`https://wa.me/${s.whatsapp.replace(/[^0-9]/g,'')}`:'#');
+  lnk('ft-instagram', s.instagram?`https://instagram.com/${s.instagram}`:'#');
+  lnk('ft-discord',   s.discord?`https://discord.gg/${s.discord}`:'#');
+
+  const sc=document.getElementById('stat-customers');
+  if(sc) sc.setAttribute('data-target', parseInt(s.happy_customers||'5000'));
+  const sr=document.getElementById('stat-rating');
+  if(sr) sr.textContent=(s.rating||'4.9/5').split('/')[0];
 }
 
-// ─── PRODUCTS ────────────────────────────────────────
-function renderProducts(products) {
-  const grid = document.getElementById('productsGrid');
-  if (!grid) return;
-  const iconMap = {
-    day: 'fa-calendar-day',
-    week: 'fa-calendar-week',
-    month: 'fa-calendar-alt'
-  };
-  grid.innerHTML = products.map(p => `
-    <div class="product-card ${p.badge === 'POPULAR' || p.badge === 'BEST VALUE' ? 'featured' : ''}">
-      ${p.badge ? `<div class="pc-badge">${p.badge}</div>` : ''}
-      <div class="pc-top">
-        ${p.main_image
-          ? `<img src="${p.main_image}" class="pc-main-img" alt="${p.name}" onerror="this.style.display='none'">`
-          : `<i class="fas ${iconMap[p.icon] || 'fa-calendar'} pc-icon"></i>`
-        }
-        <div class="pc-name">${p.duration || p.name}</div>
-        <div class="pc-sub">SUBSCRIPTION</div>
+// ─── SINGLE PRODUCT WITH TIER SELECTOR ───────────────
+function renderProduct(p) {
+  const wrap = document.getElementById('productWrap');
+  if (!wrap || !p) return;
+  const activeTier = p.tiers.find(t=>t.popular) || p.tiers[0];
+
+  wrap.innerHTML = `
+    <div class="single-product-card">
+      ${p.main_image ? `<div class="spc-image"><img src="${p.main_image}" alt="${p.name}"/></div>` : ''}
+      <div class="spc-left">
+        <div class="spc-eyebrow"><i class="fas fa-gamepad"></i> PUBG MOBILE</div>
+        <h3 class="spc-name">${p.name}</h3>
+        <p class="spc-desc">${p.description}</p>
+        <ul class="spc-features">
+          <li><i class="fas fa-bolt"></i> Instant delivery (1–5 min)</li>
+          <li><i class="fas fa-shield-alt"></i> 100% safe — no password needed</li>
+          <li><i class="fas fa-headset"></i> 24/7 customer support</li>
+          <li><i class="fas fa-mobile-alt"></i> PUBG Mobile all regions</li>
+        </ul>
       </div>
-      <div class="pc-body">
-        <p class="pc-desc">${p.description || ''}</p>
-        <div class="pc-price">
-          <span class="pc-price-pkr">PKR ${Number(p.price_pkr).toLocaleString()}</span>
-          <span class="pc-price-divider">/</span>
-          <span class="pc-price-usdt">$${p.price_usdt} USDT</span>
+      <div class="spc-right">
+        <div class="spc-tier-label">SELECT DURATION</div>
+        <div class="spc-tiers" id="spcTiers">
+          ${p.tiers.map(t => `
+            <button class="spc-tier ${t.popular?'popular':''} ${t.id===activeTier.id?'active':''}"
+                    onclick="selectTier('${t.id}')" data-tier="${t.id}">
+              ${t.badge?`<div class="spc-tier-badge">${t.badge}</div>`:''}
+              <div class="spc-tier-dur">${t.label}</div>
+              <div class="spc-tier-pkr">PKR ${Number(t.price_pkr).toLocaleString()}</div>
+              <div class="spc-tier-usdt">$${t.price_usdt} USDT</div>
+            </button>
+          `).join('')}
         </div>
-        <p class="pc-price-label">Price: PKR / USDT</p>
-        <div class="pc-btns">
-          <button class="btn-outline pc-details-btn" onclick="window.location.href='/product/${p.id}'">
-            <i class="fas fa-eye"></i> VIEW DETAILS
+        <div class="spc-price-display" id="spcPriceDisplay">
+          <div class="spc-price-main"><span class="spc-price-pkr-big" id="spcPkr">PKR ${Number(activeTier.price_pkr).toLocaleString()}</span></div>
+          <div class="spc-price-usdt-line" id="spcUsdt">$${activeTier.price_usdt} USDT</div>
+        </div>
+        <div class="spc-actions">
+          <button class="btn-primary spc-addcart" id="spcAddCart" onclick="addToCart()">
+            <i class="fas fa-shopping-cart"></i> ADD TO CART
           </button>
-          <button class="btn-primary" onclick="openOrderModal(${p.id}, '${p.name}', ${p.price_pkr}, ${p.price_usdt})">
-            <i class="fas fa-shopping-cart"></i> BUY NOW
+          <button class="btn-outline spc-buynow" onclick="addToCartAndCheckout()">
+            <i class="fas fa-bolt"></i> BUY NOW
           </button>
         </div>
-      </div>
-    </div>
-  `).join('');
-}
-
-// ─── REVIEWS ────────────────────────────────────────
-function renderReviews(reviews) {
-  const track = document.getElementById('reviewsTrack');
-  if (!track || !reviews.length) return;
-  const cards = reviews.map(r => `
-    <div class="review-card">
-      <div class="rc-header">
-        <div class="rc-avatar">${r.avatar || r.name.slice(0,2).toUpperCase()}</div>
-        <div>
-          <div class="rc-name">${r.name}</div>
-          <div class="rc-meta">
-            <div class="rc-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
-            ${r.verified ? '<span class="rc-verified">✓ Verified</span>' : ''}
-          </div>
+        <div class="spc-selected-label" id="spcSelectedLabel">
+          Selected: <strong>${activeTier.label}</strong>
         </div>
       </div>
-      <p class="rc-comment">${r.comment}</p>
-      <div class="rc-date">${formatDate(r.date)}</div>
     </div>
-  `).join('');
-  track.innerHTML = cards + cards;
-}
-
-function formatDate(dateStr) {
-  if (!dateStr) return '';
-  const d = new Date(dateStr);
-  return d.toLocaleDateString('en-PK', { year: 'numeric', month: 'short', day: 'numeric' });
-}
-
-// ─── FAQ ────────────────────────────────────────────
-function renderFAQ(faq) {
-  const list = document.getElementById('faqList');
-  if (!list) return;
-  list.innerHTML = faq.map(item => `
-    <div class="faq-item">
-      <div class="faq-q" onclick="toggleFAQ(this)">
-        ${item.question}
-        <i class="fas fa-plus"></i>
-      </div>
-      <div class="faq-a"><p>${item.answer}</p></div>
-    </div>
-  `).join('');
-}
-
-function toggleFAQ(el) {
-  const item = el.parentElement;
-  const isOpen = item.classList.contains('open');
-  document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
-  if (!isOpen) item.classList.add('open');
-}
-
-// ─── ORDER MODAL ────────────────────────────────────
-function openOrderModal(productId, productName, pricePkr, priceUsdt) {
-  document.getElementById('orderProductId').value = productId;
-  document.getElementById('modalProductInfo').innerHTML = `
-    <div>${productName} — <strong>PKR ${Number(pricePkr).toLocaleString()}</strong> / <strong>$${priceUsdt} USDT</strong></div>
   `;
-  document.getElementById('orderName').value = '';
-  document.getElementById('orderContact').value = '';
-  document.getElementById('orderPubgId').value = '';
-  document.getElementById('orderPayment').value = '';
-  document.getElementById('orderNotes').value = '';
-  document.getElementById('orderModal').classList.add('open');
-  document.body.style.overflow = 'hidden';
+  window._selectedTierId = activeTier.id;
 }
 
-function closeOrderModal() {
-  document.getElementById('orderModal').classList.remove('open');
-  document.body.style.overflow = '';
+function selectTier(id) {
+  if (!productData) return;
+  const tier = productData.tiers.find(t=>t.id===id);
+  if (!tier) return;
+  window._selectedTierId = id;
+  document.querySelectorAll('.spc-tier').forEach(b=>b.classList.toggle('active', b.dataset.tier===id));
+  document.getElementById('spcPkr').textContent   = `PKR ${Number(tier.price_pkr).toLocaleString()}`;
+  document.getElementById('spcUsdt').textContent  = `$${tier.price_usdt} USDT`;
+  document.getElementById('spcSelectedLabel').innerHTML = `Selected: <strong>${tier.label}</strong>`;
+  // Pulse animation
+  const disp = document.getElementById('spcPriceDisplay');
+  disp.classList.remove('price-pulse'); void disp.offsetWidth; disp.classList.add('price-pulse');
+}
+
+// ─── CART ────────────────────────────────────────────
+function saveCart() { localStorage.setItem('teamesp_cart', JSON.stringify(cart)); }
+
+function addToCart(andCheckout=false) {
+  if (!productData || !window._selectedTierId) return;
+  const tier = productData.tiers.find(t=>t.id===window._selectedTierId);
+  if (!tier) return;
+  const existing = cart.find(i=>i.tier_id===tier.id);
+  if (existing) { existing.qty = (existing.qty||1)+1; }
+  else { cart.push({ tier_id:tier.id, label:tier.label, price_pkr:tier.price_pkr, price_usdt:tier.price_usdt, qty:1 }); }
+  saveCart();
+  updateCartUI();
+  showToast(`✅ ${tier.label} added to cart!`);
+  // Bounce cart icon
+  const btn=document.querySelector('.cart-nav-btn');
+  btn?.classList.remove('cart-bounce'); void btn?.offsetWidth; btn?.classList.add('cart-bounce');
+  if (andCheckout) { setTimeout(()=>{ openCart(); openCheckout(); }, 200); }
+  else openCart();
+}
+function addToCartAndCheckout() { addToCart(true); }
+
+function removeFromCart(tierId) {
+  cart = cart.filter(i=>i.tier_id!==tierId);
+  saveCart(); updateCartUI(); renderCartItems();
+}
+function updateQty(tierId, delta) {
+  const item = cart.find(i=>i.tier_id===tierId);
+  if (!item) return;
+  item.qty = Math.max(1, (item.qty||1)+delta);
+  saveCart(); updateCartUI(); renderCartItems();
+}
+function clearCart() { cart=[]; saveCart(); updateCartUI(); renderCartItems(); }
+
+function getCartTotal() {
+  return {
+    pkr:  cart.reduce((s,i)=>s+i.price_pkr*(i.qty||1),0),
+    usdt: cart.reduce((s,i)=>s+i.price_usdt*(i.qty||1),0)
+  };
+}
+
+function updateCartUI() {
+  const count = cart.reduce((s,i)=>s+(i.qty||1),0);
+  const badge = document.getElementById('cartBadge');
+  if (badge) { badge.textContent=count; badge.style.display=count?'flex':'none'; }
+}
+
+function renderCartItems() {
+  const el  = document.getElementById('cartItems');
+  const ft  = document.getElementById('cartFooter');
+  const empty=document.getElementById('cartEmpty');
+  if (!cart.length) {
+    if (empty) empty.style.display='flex';
+    if (ft) ft.style.display='none';
+    if (el) el.innerHTML=''; el && el.appendChild(document.getElementById('cartEmpty'));
+    return;
+  }
+  if (empty) empty.style.display='none';
+  if (ft) ft.style.display='block';
+  const tot = getCartTotal();
+  document.getElementById('cartTotalPkr').textContent  = `PKR ${Number(tot.pkr).toLocaleString()}`;
+  document.getElementById('cartTotalUsdt').textContent = `/ $${tot.usdt.toFixed(2)} USDT`;
+  el.innerHTML = cart.map(item=>`
+    <div class="cart-item">
+      <div class="cart-item-info">
+        <div class="cart-item-name">${item.label} Subscription</div>
+        <div class="cart-item-price">PKR ${Number(item.price_pkr).toLocaleString()} / $${item.price_usdt} USDT</div>
+      </div>
+      <div class="cart-item-controls">
+        <button class="cart-qty-btn" onclick="updateQty('${item.tier_id}',-1)"><i class="fas fa-minus"></i></button>
+        <span class="cart-qty">${item.qty||1}</span>
+        <button class="cart-qty-btn" onclick="updateQty('${item.tier_id}',+1)"><i class="fas fa-plus"></i></button>
+        <button class="cart-remove-btn" onclick="removeFromCart('${item.tier_id}')"><i class="fas fa-trash"></i></button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openCart() {
+  renderCartItems();
+  document.getElementById('cartDrawer').classList.add('open');
+  document.getElementById('cartOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeCart() {
+  document.getElementById('cartDrawer').classList.remove('open');
+  document.getElementById('cartOverlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+function smoothTo(sel) { const el=document.querySelector(sel); if(el) window.scrollTo({top:el.offsetTop-80,behavior:'smooth'}); }
+
+// ─── CHECKOUT ────────────────────────────────────────
+function openCheckout() {
+  if (!cart.length) { showToast('Your cart is empty!','error'); return; }
+  const tot = getCartTotal();
+  document.getElementById('checkoutSummary').innerHTML = `
+    <div class="checkout-items">
+      ${cart.map(i=>`
+        <div class="checkout-item">
+          <span>${i.label} Subscription × ${i.qty||1}</span>
+          <span>PKR ${Number(i.price_pkr*(i.qty||1)).toLocaleString()}</span>
+        </div>
+      `).join('')}
+      <div class="checkout-total">
+        <span>Total</span>
+        <div><strong>PKR ${Number(tot.pkr).toLocaleString()}</strong><span> / $${tot.usdt.toFixed(2)} USDT</span></div>
+      </div>
+    </div>
+  `;
+  ['orderName','orderContact','orderPubgId','orderNotes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('orderPayment').value='';
+  closeCart();
+  document.getElementById('checkoutModal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeCheckout() {
+  document.getElementById('checkoutModal').classList.remove('open');
+  document.body.style.overflow='';
 }
 
 async function submitOrder() {
-  const product_id     = document.getElementById('orderProductId').value;
-  const customer_name  = document.getElementById('orderName').value.trim();
-  const customer_contact = document.getElementById('orderContact').value.trim();
-  const pubg_id        = document.getElementById('orderPubgId').value.trim();
-  const payment_method = document.getElementById('orderPayment').value;
-  const notes          = document.getElementById('orderNotes').value.trim();
-
-  if (!customer_name || !customer_contact || !pubg_id || !payment_method) {
-    showToast('Please fill all required fields!', 'error');
-    return;
+  const customer_name   =document.getElementById('orderName').value.trim();
+  const customer_contact=document.getElementById('orderContact').value.trim();
+  const pubg_id         =document.getElementById('orderPubgId').value.trim();
+  const payment_method  =document.getElementById('orderPayment').value;
+  const notes           =document.getElementById('orderNotes').value.trim();
+  if (!customer_name||!customer_contact||!pubg_id||!payment_method) {
+    showToast('Please fill all required fields!','error'); return;
   }
-
-  const btn = document.querySelector('#orderModal .full-btn');
-  const origText = btn.innerHTML;
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-  btn.disabled = true;
-
+  const btn=document.getElementById('placeOrderBtn');
+  const orig=btn.innerHTML; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Processing...'; btn.disabled=true;
   try {
-    const res = await fetch('/api/orders', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ product_id, customer_name, customer_contact, pubg_id, payment_method, notes })
+    const res = await fetch('/api/orders',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ items:cart, customer_name, customer_contact, pubg_id, payment_method, notes })
     });
     const data = await res.json();
     if (data.success) {
-      closeOrderModal();
-      document.getElementById('orderIdDisplay').textContent = data.order_id;
-      const msg = `Team ESP Order\nOrder ID: ${data.order_id}\nPUBG ID: ${pubg_id}\nPayment: ${payment_method}`;
-      const wn  = (settings.whatsapp || '').replace(/[^0-9]/g, '');
-      const tn  = (settings.telegram || '').replace('@', '');
-      document.getElementById('successWhatsapp').href = `https://wa.me/${wn}?text=${encodeURIComponent(msg)}`;
-      document.getElementById('successTelegram').href = `https://t.me/${tn}`;
+      closeCheckout();
+      document.getElementById('orderIdDisplay').textContent=data.order_id;
+      const tot=getCartTotal();
+      const msg=`Team ESP Order\nOrder ID: ${data.order_id}\nPUBG ID: ${pubg_id}\nTotal: PKR ${Number(tot.pkr).toLocaleString()}\nPayment: ${payment_method}`;
+      const wn=(settings.whatsapp||'').replace(/[^0-9]/g,'');
+      const tn=(settings.telegram||'').replace('@','');
+      document.getElementById('successWhatsapp').href=`https://wa.me/${wn}?text=${encodeURIComponent(msg)}`;
+      document.getElementById('successTelegram').href=`https://t.me/${tn}`;
       document.getElementById('successModal').classList.add('open');
-      document.body.style.overflow = 'hidden';
-    } else {
-      showToast(data.error || 'Order failed. Try again.', 'error');
-      btn.innerHTML = origText;
-      btn.disabled = false;
-    }
-  } catch (e) {
-    showToast('Connection error. Please try again.', 'error');
-    btn.innerHTML = origText;
-    btn.disabled = false;
-  }
+      document.body.style.overflow='hidden';
+      clearCart();
+    } else { showToast(data.error||'Order failed.','error'); btn.innerHTML=orig; btn.disabled=false; }
+  } catch(e) { showToast('Connection error. Please try again.','error'); btn.innerHTML=orig; btn.disabled=false; }
 }
 
 function closeSuccessModal() {
   document.getElementById('successModal').classList.remove('open');
-  document.body.style.overflow = '';
+  document.body.style.overflow='';
 }
 
-document.querySelectorAll('.modal-overlay').forEach(overlay => {
-  overlay.addEventListener('click', e => {
-    if (e.target === overlay) {
-      overlay.classList.remove('open');
-      document.body.style.overflow = '';
-    }
-  });
+document.querySelectorAll('.modal-overlay').forEach(o=>{
+  o.addEventListener('click',e=>{ if(e.target===o){ o.classList.remove('open'); document.body.style.overflow=''; } });
 });
+
+// ─── REVIEWS ────────────────────────────────────────
+function renderReviews(reviews) {
+  const track=document.getElementById('reviewsTrack');
+  if (!track||!reviews.length) return;
+  const cards=reviews.map(r=>`
+    <div class="review-card">
+      <div class="rc-header"><div class="rc-avatar">${r.avatar||r.name.slice(0,2).toUpperCase()}</div>
+        <div><div class="rc-name">${r.name}</div><div class="rc-meta"><div class="rc-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>${r.verified?'<span class="rc-verified">✓ Verified</span>':''}</div></div></div>
+      <p class="rc-comment">${r.comment}</p>
+      <div class="rc-date">${new Date(r.date).toLocaleDateString('en-PK',{year:'numeric',month:'short',day:'numeric'})}</div>
+    </div>`).join('');
+  track.innerHTML=cards+cards;
+}
 
 // ─── STAR RATING ────────────────────────────────────
-const stars = document.querySelectorAll('.star-rating i');
-stars.forEach(star => {
-  star.addEventListener('click', () => {
-    selectedRating = parseInt(star.getAttribute('data-val'));
-    updateStars(selectedRating);
-  });
-  star.addEventListener('mouseenter', () => updateStars(parseInt(star.getAttribute('data-val'))));
+document.querySelectorAll('.star-rating i').forEach(star=>{
+  star.addEventListener('click',()=>{ selectedRating=parseInt(star.dataset.val); updateStars(selectedRating); });
+  star.addEventListener('mouseenter',()=>updateStars(parseInt(star.dataset.val)));
 });
-document.querySelector('.star-rating')?.addEventListener('mouseleave', () => updateStars(selectedRating));
-function updateStars(val) {
-  stars.forEach(s => {
-    s.classList.toggle('active', parseInt(s.getAttribute('data-val')) <= val);
-  });
+document.querySelector('.star-rating')?.addEventListener('mouseleave',()=>updateStars(selectedRating));
+function updateStars(v) { document.querySelectorAll('.star-rating i').forEach(s=>s.classList.toggle('active',parseInt(s.dataset.val)<=v)); }
+
+async function submitReview() {
+  const name=document.getElementById('reviewName').value.trim();
+  const comment=document.getElementById('reviewComment').value.trim();
+  if (!name||!comment||!selectedRating){ showToast('Please fill in all fields!','error'); return; }
+  try {
+    const res=await fetch('/api/reviews',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,rating:selectedRating,comment})});
+    const d=await res.json();
+    if(d.success){ document.getElementById('reviewName').value=''; document.getElementById('reviewComment').value=''; selectedRating=0; updateStars(0); showToast('✅ Review submitted for approval!'); }
+    else showToast(d.error||'Failed.','error');
+  } catch(e){ showToast('Connection error.','error'); }
 }
 
-// ─── REVIEW SUBMIT ───────────────────────────────────
-async function submitReview() {
-  const name    = document.getElementById('reviewName').value.trim();
-  const comment = document.getElementById('reviewComment').value.trim();
-  if (!name || !comment || !selectedRating) {
-    showToast('Please fill in all fields and select a rating!', 'error');
-    return;
-  }
-  try {
-    const res = await fetch('/api/reviews', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, rating: selectedRating, comment })
-    });
-    const data = await res.json();
-    if (data.success) {
-      document.getElementById('reviewName').value = '';
-      document.getElementById('reviewComment').value = '';
-      selectedRating = 0;
-      updateStars(0);
-      showToast('✅ Review submitted! It will appear after approval.', 'success');
-    } else {
-      showToast(data.error || 'Failed to submit review.', 'error');
-    }
-  } catch (e) {
-    showToast('Connection error. Please try again.', 'error');
-  }
+// ─── FAQ ────────────────────────────────────────────
+function renderFAQ(faq) {
+  const list=document.getElementById('faqList');
+  if (!list) return;
+  list.innerHTML=faq.map(item=>`
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFAQ(this)">${item.question}<i class="fas fa-plus"></i></div>
+      <div class="faq-a"><p>${item.answer}</p></div>
+    </div>`).join('');
+}
+function toggleFAQ(el) {
+  const item=el.parentElement, open=item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(i=>i.classList.remove('open'));
+  if(!open) item.classList.add('open');
 }
 
 // ─── CHATBOT ────────────────────────────────────────
-function toggleChat() {
-  const win = document.getElementById('chatWindow');
-  win.classList.toggle('open');
-  if (win.classList.contains('open')) document.getElementById('chatInput').focus();
-}
-
-function sendQuick(text) {
-  document.getElementById('chatInput').value = text;
-  sendChatMessage();
-}
-
-async function sendChatMessage() {
-  const input = document.getElementById('chatInput');
-  const msg = input.value.trim();
-  if (!msg) return;
-  input.value = '';
-  addChatMsg(msg, 'user');
-  const typing = addTyping();
+function toggleChat(){ const w=document.getElementById('chatWindow'); w.classList.toggle('open'); if(w.classList.contains('open')) document.getElementById('chatInput').focus(); }
+function sendQuick(t){ document.getElementById('chatInput').value=t; sendChatMessage(); }
+async function sendChatMessage(){
+  const inp=document.getElementById('chatInput'); const msg=inp.value.trim(); if(!msg) return;
+  inp.value=''; addChatMsg(msg,'user'); const typing=addTyping();
   try {
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: msg })
-    });
-    const data = await res.json();
-    typing.remove();
-    addChatMsg(data.reply, 'bot');
-  } catch (e) {
-    typing.remove();
-    addChatMsg('Sorry, could not connect. Please contact us directly!', 'bot');
-  }
+    const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg})});
+    const d=await res.json(); typing.remove(); addChatMsg(d.reply,'bot');
+  } catch(e){ typing.remove(); addChatMsg('Sorry, connection error. Contact us directly!','bot'); }
+}
+function addChatMsg(text,type){
+  const msgs=document.getElementById('chatMessages');
+  const div=document.createElement('div'); div.className=`chat-msg ${type}-msg`;
+  div.innerHTML=`${type==='bot'?'<div class="msg-avatar"><i class="fas fa-crosshairs"></i></div>':''}<div class="msg-content">${text}</div>`;
+  msgs.appendChild(div); msgs.scrollTop=msgs.scrollHeight; return div;
+}
+function addTyping(){
+  const msgs=document.getElementById('chatMessages');
+  const div=document.createElement('div'); div.className='chat-msg bot-msg';
+  div.innerHTML='<div class="msg-avatar"><i class="fas fa-crosshairs"></i></div><div class="msg-content"><div class="chat-typing"><span></span><span></span><span></span></div></div>';
+  msgs.appendChild(div); msgs.scrollTop=msgs.scrollHeight; return div;
 }
 
-function addChatMsg(text, type) {
-  const msgs = document.getElementById('chatMessages');
-  const div = document.createElement('div');
-  div.className = `chat-msg ${type}-msg`;
-  div.innerHTML = `
-    ${type === 'bot' ? '<div class="msg-avatar"><i class="fas fa-crosshairs"></i></div>' : ''}
-    <div class="msg-content">${text}</div>
-  `;
-  msgs.appendChild(div);
-  msgs.scrollTop = msgs.scrollHeight;
-  return div;
-}
-
-function addTyping() {
-  const msgs = document.getElementById('chatMessages');
-  const div = document.createElement('div');
-  div.className = 'chat-msg bot-msg';
-  div.innerHTML = `
-    <div class="msg-avatar"><i class="fas fa-crosshairs"></i></div>
-    <div class="msg-content"><div class="chat-typing"><span></span><span></span><span></span></div></div>
-  `;
-  msgs.appendChild(div);
-  msgs.scrollTop = msgs.scrollHeight;
-  return div;
-}
-
-// ─── COPY TEXT ───────────────────────────────────────
-function copyText(elementId) {
-  const el = document.getElementById(elementId);
-  if (!el) return;
-  navigator.clipboard.writeText(el.textContent).then(() => {
-    showToast('📋 Copied to clipboard!');
-  }).catch(() => {
-    const range = document.createRange();
-    range.selectNode(el);
-    window.getSelection().removeAllRanges();
-    window.getSelection().addRange(range);
-    document.execCommand('copy');
-    window.getSelection().removeAllRanges();
-    showToast('📋 Copied!');
-  });
+// ─── COPY ───────────────────────────────────────────
+function copyText(id){
+  const el=document.getElementById(id); if(!el) return;
+  navigator.clipboard.writeText(el.textContent).then(()=>showToast('📋 Copied!')).catch(()=>{ const r=document.createRange(); r.selectNode(el); window.getSelection().removeAllRanges(); window.getSelection().addRange(r); document.execCommand('copy'); window.getSelection().removeAllRanges(); showToast('📋 Copied!'); });
 }
 
 // ─── TOAST ──────────────────────────────────────────
-function showToast(msg, type = 'success') {
-  const toast = document.getElementById('toast');
-  toast.textContent = msg;
-  toast.className = `toast show ${type}`;
-  clearTimeout(window._toastTimer);
-  window._toastTimer = setTimeout(() => toast.classList.remove('show'), 3500);
+function showToast(msg,type='success'){
+  const t=document.getElementById('toast'); t.textContent=msg; t.className=`toast show ${type}`;
+  clearTimeout(window._tt); window._tt=setTimeout(()=>t.classList.remove('show'),3500);
 }
 
 // ─── COUNTERS ───────────────────────────────────────
-function initCounters() {
-  document.querySelectorAll('.counter-anim').forEach(el => {
-    const target = parseInt(el.getAttribute('data-target') || '0');
-    animateCounter(el, target);
+function initCounters(){
+  document.querySelectorAll('.counter-anim').forEach(el=>{
+    const tgt=parseInt(el.dataset.target||'0');
+    let cur=0; const step=tgt/(2000/16);
+    const t=setInterval(()=>{ cur=Math.min(cur+step,tgt); el.textContent=Math.floor(cur).toLocaleString(); if(cur>=tgt) clearInterval(t); },16);
   });
-}
-
-function animateCounter(el, target) {
-  const duration = 2000;
-  const step = target / (duration / 16);
-  let current = 0;
-  const timer = setInterval(() => {
-    current = Math.min(current + step, target);
-    el.textContent = Math.floor(current).toLocaleString();
-    if (current >= target) clearInterval(timer);
-  }, 16);
 }
 
 // ─── REVEAL ─────────────────────────────────────────
-function initReveal() {
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
-        observer.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
-  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+function initReveal(){
+  const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target);}});},{threshold:.1,rootMargin:'0px 0px -50px 0px'});
+  document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
 }
 
 // ─── SMOOTH SCROLL ───────────────────────────────────
-document.querySelectorAll('a[href^="#"]').forEach(link => {
-  link.addEventListener('click', e => {
-    const target = document.querySelector(link.getAttribute('href'));
-    if (target) {
-      e.preventDefault();
-      const offset = 80;
-      window.scrollTo({ top: target.offsetTop - offset, behavior: 'smooth' });
-    }
+document.querySelectorAll('a[href^="#"]').forEach(link=>{
+  link.addEventListener('click',e=>{
+    const t=document.querySelector(link.getAttribute('href'));
+    if(t){ e.preventDefault(); window.scrollTo({top:t.offsetTop-80,behavior:'smooth'}); }
   });
 });
+
+// ══════════════════════════════════════════════════════
+// CLICK-TO-EDIT SYSTEM
+// ══════════════════════════════════════════════════════
+
+function applyContent() {
+  document.querySelectorAll('[data-key]').forEach(el => {
+    const key = el.dataset.key;
+    if (contentMap[key] !== undefined) el.textContent = contentMap[key];
+  });
+}
+
+// ── Edit Login ──
+function showEditLogin() { document.getElementById('editLoginModal').classList.add('open'); document.body.style.overflow='hidden'; setTimeout(()=>document.getElementById('editAdminPw').focus(),100); }
+function hideEditLogin() { document.getElementById('editLoginModal').classList.remove('open'); document.body.style.overflow=''; }
+
+async function doEditLogin() {
+  const pw = document.getElementById('editAdminPw').value;
+  if (!pw) return;
+  try {
+    const res = await fetch('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pw})});
+    const d = await res.json();
+    if (d.token) {
+      editToken = d.token;
+      localStorage.setItem('teamesp_edit_token', editToken);
+      hideEditLogin();
+      document.getElementById('editAdminPw').value='';
+      document.getElementById('editLoginErr').style.display='none';
+      toggleEditMode(true);
+    } else {
+      document.getElementById('editLoginErr').style.display='block';
+    }
+  } catch(e) { document.getElementById('editLoginErr').style.display='block'; }
+}
+
+// ── Toggle Edit Mode ──
+function toggleEditMode(on, silent=false) {
+  editMode = on;
+  const toolbar = document.getElementById('editToolbar');
+  const loginBtn= document.getElementById('editLoginBtn');
+  toolbar.style.display  = on ? 'block' : 'none';
+  loginBtn.style.display = on ? 'none'  : 'flex';
+  document.body.classList.toggle('edit-mode-active', on);
+
+  if (on) {
+    document.querySelectorAll('[data-key]').forEach(el => makeEditable(el));
+    if (!silent) showToast('✏️ Edit Mode ON — Click any gold text to edit!');
+  } else {
+    document.querySelectorAll('[data-key]').forEach(el => removeEditable(el));
+    editToken = null;
+    localStorage.removeItem('teamesp_edit_token');
+    showToast('Edit mode off.');
+  }
+}
+
+function makeEditable(el) {
+  el.classList.add('editable-active');
+  el.setAttribute('contenteditable','true');
+  el.setAttribute('spellcheck','false');
+
+  el._onInput = () => {
+    const key = el.dataset.key;
+    clearTimeout(saveTimer);
+    showSaveStatus('Saving...');
+    saveTimer = setTimeout(()=>saveContent(key, el.textContent.trim()), 800);
+  };
+  el._onKeydown = e => {
+    if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); el.blur(); }
+    if (e.key==='Escape') { el.blur(); }
+  };
+  el._onFocus = () => el.classList.add('editing');
+  el._onBlur  = () => { el.classList.remove('editing'); const key=el.dataset.key; saveContent(key, el.textContent.trim()); };
+
+  el.addEventListener('input',   el._onInput);
+  el.addEventListener('keydown', el._onKeydown);
+  el.addEventListener('focus',   el._onFocus);
+  el.addEventListener('blur',    el._onBlur);
+}
+
+function removeEditable(el) {
+  el.classList.remove('editable-active','editing');
+  el.removeAttribute('contenteditable');
+  el.removeEventListener('input',   el._onInput);
+  el.removeEventListener('keydown', el._onKeydown);
+  el.removeEventListener('focus',   el._onFocus);
+  el.removeEventListener('blur',    el._onBlur);
+}
+
+async function saveContent(key, value) {
+  if (!editToken) return;
+  try {
+    const res = await fetch('/api/content',{
+      method:'PUT',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${editToken}`},
+      body: JSON.stringify({ key, value })
+    });
+    const d = await res.json();
+    if (d.success) { contentMap[key]=value; showSaveStatus('✅ Saved!'); setTimeout(()=>showSaveStatus(''),2000); }
+    else if (res.status===401||res.status===403) { toggleEditMode(false); showToast('Session expired. Please login again.','error'); }
+    else showSaveStatus('❌ Save failed');
+  } catch(e) { showSaveStatus('❌ Connection error'); }
+}
+
+function showSaveStatus(msg) {
+  const el = document.getElementById('editSaveStatus');
+  if (el) el.textContent = msg;
+}
 
 // ─── INIT ────────────────────────────────────────────
 loadData();
