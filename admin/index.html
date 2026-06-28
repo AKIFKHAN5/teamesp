@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Team ESP — Admin Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;700;800&family=Orbitron:wght@700;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+:root {
+  --gold: #f5a623; --gold-d: #d4891a; --gold-light: #ffc653;
+  --bg: #060910; --bg2: #0b0e18; --bg3: #101520; --bg4: #141b26;
+  --card: #0e1322; --border: rgba(245,166,35,0.15); --border2: rgba(245,166,35,0.35);
+  --text: #e0e0e8; --text2: #8a94a6; --text3: #505870;
+  --green: #27ae60; --red: #e74c3c; --orange: #f39c12; --blue: #3498db;
+  --radius: 10px; --transition: 0.25s ease;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Exo 2',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;}
+a{text-decoration:none;color:inherit;}
+button{cursor:pointer;border:none;outline:none;font-family:'Exo 2',sans-serif;}
+input,select,textarea{font-family:'Exo 2',sans-serif;outline:none;}
+
+/* LOGIN */
+#loginPage{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--bg);width:100%;}
+.login-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:44px 36px;width:100%;max-width:400px;text-align:center;}
+.login-logo{margin-bottom:28px;}
+.login-logo .li{width:60px;height:60px;background:linear-gradient(135deg,var(--gold-d),var(--gold));border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:28px;color:#000;margin:0 auto 12px;}
+.login-logo h1{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;color:#fff;letter-spacing:2px;}
+.login-logo h1 span{color:var(--gold);}
+.login-logo p{font-size:12px;color:var(--text2);letter-spacing:1.5px;margin-top:4px;text-transform:uppercase;}
+.lf-group{margin-bottom:16px;text-align:left;}
+.lf-group label{display:block;font-size:11px;font-weight:700;letter-spacing:1px;color:var(--text2);text-transform:uppercase;margin-bottom:7px;}
+.lf-group input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-size:15px;color:var(--text);transition:var(--transition);}
+.lf-group input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(245,166,35,0.12);}
+.login-btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--gold-d),var(--gold));color:#000;font-size:14px;font-weight:800;letter-spacing:1.5px;border-radius:8px;transition:var(--transition);margin-top:4px;}
+.login-btn:hover{background:linear-gradient(135deg,var(--gold),var(--gold-light));transform:translateY(-1px);}
+.login-err{display:none;background:rgba(231,76,60,0.12);border:1px solid rgba(231,76,60,0.3);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--red);text-align:left;}
+.login-err.show{display:block;}
+
+/* ADMIN LAYOUT */
+#adminPage{display:none;flex:1;}
+.admin-layout{display:flex;min-height:100vh;}
+
+/* SIDEBAR */
+.sidebar{width:240px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.sb-brand{padding:20px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.sb-logo{width:40px;height:40px;background:linear-gradient(135deg,var(--gold-d),var(--gold));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;color:#000;flex-shrink:0;}
+.sb-name{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;color:#fff;letter-spacing:1px;}
+.sb-name span{color:var(--gold);}
+.sb-subtitle{font-size:10px;color:var(--text2);letter-spacing:1px;display:block;margin-top:2px;}
+.sb-nav{padding:14px 10px;flex:1;}
+.sb-nav a{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:8px;margin-bottom:2px;color:var(--text2);font-size:13px;font-weight:700;letter-spacing:0.5px;transition:var(--transition);position:relative;}
+.sb-nav a:hover{background:var(--bg3);color:var(--gold);}
+.sb-nav a.active{background:linear-gradient(135deg,rgba(245,166,35,0.12),rgba(245,166,35,0.06));color:var(--gold);border:1px solid var(--border);}
+.sb-nav a i{width:16px;text-align:center;font-size:14px;}
+.sb-badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:800;padding:2px 7px;border-radius:10px;min-width:20px;text-align:center;}
+.sb-bottom{padding:14px 10px;border-top:1px solid var(--border);}
+.sb-bottom a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;color:var(--text2);font-size:13px;font-weight:700;transition:var(--transition);}
+.sb-bottom a:hover{background:rgba(231,76,60,0.1);color:var(--red);}
+
+/* MAIN */
+.admin-main{flex:1;min-height:100vh;overflow-x:hidden;}
+.admin-topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.topbar-title{font-size:18px;font-weight:800;color:#fff;display:flex;align-items:center;gap:10px;}
+.topbar-title i{color:var(--gold);}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.topbar-user{font-size:12px;font-weight:700;color:var(--text2);}
+.topbar-user strong{color:var(--gold);}
+.logout-btn{padding:7px 14px;background:rgba(231,76,60,0.12);border:1px solid rgba(231,76,60,0.3);border-radius:6px;color:var(--red);font-size:12px;font-weight:700;letter-spacing:0.5px;transition:var(--transition);}
+.logout-btn:hover{background:rgba(231,76,60,0.2);}
+.admin-content{padding:28px;}
+
+/* CARDS & TABLES */
+.page-section{display:none;}
+.page-section.active{display:block;}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;display:flex;align-items:center;gap:16px;}
+.sc-icon{width:52px;height:52px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.sc-icon.gold{background:rgba(245,166,35,0.12);color:var(--gold);}
+.sc-icon.green{background:rgba(39,174,96,0.12);color:var(--green);}
+.sc-icon.red{background:rgba(231,76,60,0.12);color:var(--red);}
+.sc-icon.blue{background:rgba(52,152,219,0.12);color:var(--blue);}
+.sc-num{font-family:'Orbitron',sans-serif;font-size:26px;font-weight:800;color:#fff;line-height:1;}
+.sc-label{font-size:12px;color:var(--text2);margin-top:4px;letter-spacing:0.5px;}
+.card-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:22px;overflow:hidden;}
+.card-box-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);}
+.card-box-header h3{font-size:15px;font-weight:800;color:#fff;display:flex;align-items:center;gap:8px;}
+.card-box-header h3 i{color:var(--gold);}
+table{width:100%;border-collapse:collapse;}
+th{padding:11px 16px;font-size:11px;font-weight:800;letter-spacing:1.5px;color:var(--text2);text-transform:uppercase;text-align:left;border-bottom:1px solid var(--border);}
+td{padding:12px 16px;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.03);}
+tr:hover td{background:rgba(255,255,255,0.02);}
+.status-badge{font-size:10px;font-weight:800;letter-spacing:1px;padding:3px 10px;border-radius:20px;display:inline-block;text-transform:uppercase;}
+.status-pending{background:rgba(243,156,18,0.15);color:var(--orange);border:1px solid rgba(243,156,18,0.3);}
+.status-completed{background:rgba(39,174,96,0.15);color:var(--green);border:1px solid rgba(39,174,96,0.3);}
+.status-cancelled{background:rgba(231,76,60,0.15);color:var(--red);border:1px solid rgba(231,76,60,0.3);}
+.status-approved{background:rgba(39,174,96,0.15);color:var(--green);border:1px solid rgba(39,174,96,0.3);}
+.status-pending-rev{background:rgba(243,156,18,0.15);color:var(--orange);border:1px solid rgba(243,156,18,0.3);}
+.action-btns{display:flex;gap:6px;}
+.action-btn{padding:5px 10px;border-radius:5px;font-size:11px;font-weight:700;letter-spacing:0.5px;transition:var(--transition);display:inline-flex;align-items:center;gap:4px;}
+.btn-approve{background:rgba(39,174,96,0.12);border:1px solid rgba(39,174,96,0.3);color:var(--green);}
+.btn-approve:hover{background:var(--green);color:#000;}
+.btn-verify{background:rgba(52,152,219,0.12);border:1px solid rgba(52,152,219,0.3);color:var(--blue);}
+.btn-verify:hover{background:var(--blue);color:#fff;}
+.btn-edit{background:rgba(245,166,35,0.12);border:1px solid rgba(245,166,35,0.3);color:var(--gold);}
+.btn-edit:hover{background:var(--gold);color:#000;}
+.btn-del{background:rgba(231,76,60,0.12);border:1px solid rgba(231,76,60,0.3);color:var(--red);}
+.btn-del:hover{background:var(--red);color:#fff;}
+.btn-toggle-on{background:rgba(39,174,96,0.12);border:1px solid rgba(39,174,96,0.3);color:var(--green);}
+.btn-toggle-off{background:rgba(231,76,60,0.12);border:1px solid rgba(231,76,60,0.3);color:var(--red);}
+.status-select{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:5px 8px;font-family:'Exo 2',sans-serif;font-size:12px;font-weight:700;color:var(--text);transition:var(--transition);}
+.status-select:focus{border-color:var(--gold);}
+
+/* FORM */
+.form-section{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:22px;}
+.form-section h3{font-size:15px;font-weight:800;color:#fff;margin-bottom:18px;display:flex;align-items:center;gap:8px;}
+.form-section h3 i{color:var(--gold);}
+.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+.form-grid.three{grid-template-columns:repeat(3,1fr);}
+.form-grid.full{grid-template-columns:1fr;}
+.fg{display:flex;flex-direction:column;gap:6px;}
+.fg.span2{grid-column:span 2;}
+.fg.span3{grid-column:span 3;}
+label{font-size:11px;font-weight:700;letter-spacing:0.5px;color:var(--text2);text-transform:uppercase;}
+.fg input,.fg select,.fg textarea{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:10px 13px;font-size:13px;font-weight:600;color:var(--text);transition:var(--transition);}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(245,166,35,0.1);}
+.fg select option{background:var(--bg3);}
+.fg textarea{resize:vertical;}
+.form-actions{display:flex;gap:10px;margin-top:6px;}
+.btn-save{padding:10px 22px;background:linear-gradient(135deg,var(--gold-d),var(--gold));color:#000;font-size:13px;font-weight:800;letter-spacing:1px;border-radius:7px;transition:var(--transition);}
+.btn-save:hover{background:linear-gradient(135deg,var(--gold),var(--gold-light));transform:translateY(-1px);}
+.btn-cancel{padding:10px 20px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-size:13px;font-weight:700;transition:var(--transition);}
+.btn-cancel:hover{color:#fff;border-color:rgba(255,255,255,0.2);}
+.stars-display{color:var(--gold);font-size:13px;letter-spacing:1px;}
+
+/* CONFIRM MODAL */
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(6px);z-index:3000;display:none;align-items:center;justify-content:center;}
+.confirm-overlay.open{display:flex;}
+.confirm-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:30px;max-width:380px;width:100%;text-align:center;}
+.confirm-icon{font-size:44px;color:var(--red);margin-bottom:14px;}
+.confirm-box h3{font-size:18px;font-weight:800;color:#fff;margin-bottom:8px;}
+.confirm-box p{font-size:13px;color:var(--text2);margin-bottom:22px;line-height:1.6;}
+.confirm-btns{display:flex;gap:10px;justify-content:center;}
+.confirm-yes{padding:10px 24px;background:var(--red);color:#fff;font-size:13px;font-weight:800;border-radius:7px;transition:var(--transition);}
+.confirm-yes:hover{background:#c0392b;}
+.confirm-no{padding:10px 20px;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-size:13px;font-weight:700;transition:var(--transition);}
+.confirm-no:hover{color:#fff;}
+
+/* TOAST */
+#aToast{position:fixed;bottom:24px;right:24px;background:var(--bg3);border:1px solid var(--border);border-left:4px solid var(--gold);border-radius:8px;padding:12px 18px;font-size:13px;font-weight:700;color:#fff;z-index:4000;transform:translateX(120%);transition:transform 0.3s ease;max-width:300px;}
+#aToast.show{transform:translateX(0);}
+#aToast.success{border-left-color:var(--green);}
+#aToast.error{border-left-color:var(--red);}
+
+.empty-row td{text-align:center;color:var(--text3);padding:30px;font-style:italic;}
+.section-actions{display:flex;gap:10px;align-items:center;}
+.refresh-btn{padding:6px 12px;background:rgba(245,166,35,0.1);border:1px solid var(--border2);border-radius:6px;color:var(--gold);font-size:12px;font-weight:700;transition:var(--transition);}
+.refresh-btn:hover{background:var(--gold);color:#000;}
+.add-btn{padding:7px 14px;background:linear-gradient(135deg,var(--gold-d),var(--gold));color:#000;font-size:12px;font-weight:800;letter-spacing:0.5px;border-radius:6px;transition:var(--transition);display:flex;align-items:center;gap:6px;}
+.add-btn:hover{background:linear-gradient(135deg,var(--gold),var(--gold-light));transform:translateY(-1px);}
+.product-img-icon{font-size:20px;color:var(--gold);}
+.search-input{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:7px 12px;font-family:'Exo 2',sans-serif;font-size:12px;font-weight:700;color:var(--text);transition:var(--transition);width:180px;}
+.search-input:focus{border-color:var(--gold);}
+
+/* MEDIA PANEL */
+.media-panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:22px;display:none;}
+.media-panel.open{display:block;}
+.media-panel h3{font-size:15px;font-weight:800;color:#fff;margin-bottom:18px;display:flex;align-items:center;gap:8px;}
+.media-panel h3 i{color:var(--gold);}
+.media-panel h3 span{font-size:12px;font-weight:600;color:var(--gold);margin-left:4px;}
+.media-section{margin-bottom:22px;}
+.media-section h4{font-size:12px;font-weight:800;letter-spacing:1px;color:var(--text2);text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.media-url-row{display:flex;gap:8px;margin-bottom:10px;}
+.media-url-row input{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:9px 13px;font-size:13px;font-weight:600;color:var(--text);transition:var(--transition);}
+.media-url-row input:focus{border-color:var(--gold);}
+.media-url-row button,.media-upload-btn{padding:9px 14px;background:linear-gradient(135deg,var(--gold-d),var(--gold));color:#000;font-size:12px;font-weight:800;border-radius:7px;transition:var(--transition);display:flex;align-items:center;gap:6px;white-space:nowrap;}
+.media-url-row button:hover,.media-upload-btn:hover{filter:brightness(1.1);}
+.media-or{font-size:11px;font-weight:700;color:var(--text3);text-align:center;margin:8px 0;letter-spacing:1px;}
+.media-upload-row{display:flex;gap:8px;align-items:center;}
+.media-upload-row label{flex:1;background:var(--bg3);border:1px dashed var(--border2);border-radius:7px;padding:10px 13px;font-size:12px;font-weight:700;color:var(--text2);cursor:pointer;transition:var(--transition);text-align:center;}
+.media-upload-row label:hover{border-color:var(--gold);color:var(--gold);}
+.media-upload-row input[type=file]{display:none;}
+.media-preview{margin-top:14px;}
+.media-preview img,.media-preview video{max-width:100%;max-height:160px;border-radius:7px;border:1px solid var(--border);object-fit:cover;}
+.gallery-grid{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;}
+.gallery-thumb{position:relative;width:90px;height:64px;border-radius:6px;overflow:hidden;border:1px solid var(--border);}
+.gallery-thumb img{width:100%;height:100%;object-fit:cover;}
+.gallery-thumb-del{position:absolute;top:3px;right:3px;width:20px;height:20px;background:rgba(231,76,60,0.9);border:none;border-radius:4px;color:#fff;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.gallery-thumb-del:hover{background:var(--red);}
+.upload-progress{height:4px;background:var(--bg3);border-radius:4px;margin-top:8px;overflow:hidden;display:none;}
+.upload-progress-bar{height:100%;background:linear-gradient(90deg,var(--gold-d),var(--gold));border-radius:4px;transition:width 0.3s;}
+.media-view-link{font-size:11px;color:var(--gold);font-weight:700;margin-top:6px;display:inline-flex;align-items:center;gap:4px;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN PAGE -->
+<div id="loginPage">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="li"><i class="fas fa-crosshairs"></i></div>
+      <h1>TEAM <span>ESP</span></h1>
+      <span>ADMIN PANEL</span>
+    </div>
+    <div class="login-err" id="loginErr">Incorrect password. Please try again.</div>
+    <div class="lf-group">
+      <label>Admin Password</label>
+      <input type="password" id="loginPassword" placeholder="Enter admin password" onkeydown="if(event.key==='Enter')doLogin()"/>
+    </div>
+    <button class="login-btn" onclick="doLogin()">
+      <i class="fas fa-sign-in-alt"></i> LOGIN TO DASHBOARD
+    </button>
+  </div>
+</div>
+
+<!-- ADMIN PAGE -->
+<div id="adminPage">
+<div class="admin-layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-brand">
+      <div class="sb-logo"><i class="fas fa-crosshairs"></i></div>
+      <div>
+        <div class="sb-name">TEAM <span>ESP</span></div>
+        <span class="sb-subtitle">Admin Panel</span>
+      </div>
+    </div>
+    <nav class="sb-nav">
+      <a href="#" class="active" onclick="showPage('dashboard',this)">
+        <i class="fas fa-tachometer-alt"></i> Dashboard
+      </a>
+      <a href="#" onclick="showPage('products',this)">
+        <i class="fas fa-box"></i> Products
+      </a>
+      <a href="#" onclick="showPage('orders',this)">
+        <i class="fas fa-shopping-cart"></i> Orders
+        <span class="sb-badge" id="badge-orders">0</span>
+      </a>
+      <a href="#" onclick="showPage('reviews',this)">
+        <i class="fas fa-star"></i> Reviews
+        <span class="sb-badge" id="badge-reviews">0</span>
+      </a>
+      <a href="#" onclick="showPage('faq',this)">
+        <i class="fas fa-question-circle"></i> FAQ
+      </a>
+      <a href="#" onclick="showPage('settings',this)">
+        <i class="fas fa-cog"></i> Settings
+      </a>
+    </nav>
+    <div class="sb-bottom">
+      <a href="/" target="_blank"><i class="fas fa-external-link-alt"></i> View Website</a>
+      <a href="#" onclick="doLogout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="admin-main">
+    <div class="admin-topbar">
+      <div class="topbar-title">
+        <i class="fas fa-tachometer-alt" id="topbarIcon"></i>
+        <span id="topbarTitle">Dashboard</span>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-user">Logged in as <strong>Admin</strong></div>
+        <button class="logout-btn" onclick="doLogout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+      </div>
+    </div>
+    <div class="admin-content">
+
+      <!-- DASHBOARD -->
+      <div class="page-section active" id="page-dashboard">
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="sc-icon gold"><i class="fas fa-shopping-cart"></i></div>
+            <div><div class="sc-num" id="d-total">0</div><div class="sc-label">Total Orders</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="sc-icon red"><i class="fas fa-clock"></i></div>
+            <div><div class="sc-num" id="d-pending">0</div><div class="sc-label">Pending Orders</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="sc-icon green"><i class="fas fa-check-circle"></i></div>
+            <div><div class="sc-num" id="d-completed">0</div><div class="sc-label">Completed Orders</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="sc-icon blue"><i class="fas fa-star"></i></div>
+            <div><div class="sc-num" id="d-reviews">0</div><div class="sc-label">Total Reviews</div></div>
+          </div>
+        </div>
+        <div class="card-box">
+          <div class="card-box-header">
+            <h3><i class="fas fa-shopping-cart"></i> Recent Orders</h3>
+            <button class="refresh-btn" onclick="loadDashboard()"><i class="fas fa-sync"></i> Refresh</button>
+          </div>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead><tr><th>Order ID</th><th>Customer</th><th>Product</th><th>Payment</th><th>PUBG ID</th><th>Status</th><th>Date</th></tr></thead>
+              <tbody id="dashOrdersBody"><tr class="empty-row"><td colspan="7">No orders yet</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRODUCTS -->
+      <div class="page-section" id="page-products">
+        <div class="form-section" id="productForm">
+          <h3><i class="fas fa-plus-circle"></i> <span id="productFormTitle">Add New Product</span></h3>
+          <input type="hidden" id="editProductId"/>
+          <div class="form-grid three">
+            <div class="fg"><label>Product Name *</label><input id="p-name" placeholder="e.g. 1 Day Subscription"/></div>
+            <div class="fg"><label>Duration *</label><input id="p-duration" placeholder="e.g. 1 Day"/></div>
+            <div class="fg"><label>Icon</label>
+              <select id="p-icon">
+                <option value="day">📅 Day</option>
+                <option value="week">📆 Week</option>
+                <option value="month">🗓️ Month</option>
+                <option value="gamepad">🎮 Gamepad</option>
+              </select>
+            </div>
+            <div class="fg"><label>Price (PKR) *</label><input id="p-pkr" type="number" placeholder="e.g. 500"/></div>
+            <div class="fg"><label>Price (USDT) *</label><input id="p-usdt" type="number" step="0.01" placeholder="e.g. 1.80"/></div>
+            <div class="fg"><label>Badge</label>
+              <select id="p-badge">
+                <option value="">No Badge</option>
+                <option value="POPULAR">POPULAR</option>
+                <option value="BEST VALUE">BEST VALUE</option>
+                <option value="NEW">NEW</option>
+                <option value="HOT">HOT</option>
+              </select>
+            </div>
+            <div class="fg span3"><label>Description</label><textarea id="p-desc" rows="2" placeholder="Short description..."></textarea></div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-save" onclick="saveProduct()"><i class="fas fa-save"></i> <span id="productSaveBtn">Add Product</span></button>
+            <button class="btn-cancel" onclick="resetProductForm()"><i class="fas fa-times"></i> Cancel</button>
+          </div>
+        </div>
+
+        <!-- MEDIA MANAGER (shown only when editing) -->
+        <div class="media-panel" id="mediaPanel">
+          <h3><i class="fas fa-images"></i> Media Manager <span id="mediaPanelProductName"></span></h3>
+
+          <!-- Main Image -->
+          <div class="media-section">
+            <h4><i class="fas fa-image"></i> Main Product Image</h4>
+            <div class="media-url-row">
+              <input id="main-img-url" placeholder="Paste image URL (e.g. https://i.imgur.com/abc.jpg)"/>
+              <button onclick="saveMainImageUrl()"><i class="fas fa-link"></i> Set URL</button>
+            </div>
+            <div class="media-or">— OR UPLOAD FILE —</div>
+            <div class="media-upload-row">
+              <label for="main-img-file"><i class="fas fa-upload"></i> Choose Image File (JPG/PNG/WEBP)</label>
+              <input type="file" id="main-img-file" accept="image/*" onchange="uploadMainImage(this)"/>
+            </div>
+            <div class="upload-progress" id="main-upload-progress"><div class="upload-progress-bar" id="main-upload-bar" style="width:0%"></div></div>
+            <div class="media-preview" id="main-img-preview"></div>
+          </div>
+
+          <!-- Video -->
+          <div class="media-section">
+            <h4><i class="fas fa-video"></i> Product Video</h4>
+            <div class="media-url-row">
+              <input id="video-url-input" placeholder="YouTube URL or direct video URL (e.g. https://youtu.be/...)"/>
+              <button onclick="saveVideoUrl()"><i class="fas fa-link"></i> Set Video</button>
+            </div>
+            <div class="media-or">— OR UPLOAD VIDEO FILE —</div>
+            <div class="media-upload-row">
+              <label for="video-file"><i class="fas fa-upload"></i> Choose Video File (MP4/MOV/WEBM, max 50MB)</label>
+              <input type="file" id="video-file" accept="video/*" onchange="uploadVideoFile(this)"/>
+            </div>
+            <div class="upload-progress" id="video-upload-progress"><div class="upload-progress-bar" id="video-upload-bar" style="width:0%"></div></div>
+            <div class="media-preview" id="video-preview"></div>
+          </div>
+
+          <!-- Gallery Images -->
+          <div class="media-section">
+            <h4><i class="fas fa-th"></i> Gallery Images (Screenshots / Multiple Images)</h4>
+            <div class="media-url-row">
+              <input id="gallery-url-input" placeholder="Paste image URL to add to gallery"/>
+              <button onclick="addGalleryUrl()"><i class="fas fa-plus"></i> Add</button>
+            </div>
+            <div class="media-or">— OR UPLOAD FILES —</div>
+            <div class="media-upload-row">
+              <label for="gallery-files"><i class="fas fa-upload"></i> Choose Multiple Images (select all at once)</label>
+              <input type="file" id="gallery-files" accept="image/*" multiple onchange="uploadGalleryFiles(this)"/>
+            </div>
+            <div class="upload-progress" id="gallery-upload-progress"><div class="upload-progress-bar" id="gallery-upload-bar" style="width:0%"></div></div>
+            <div class="gallery-grid" id="galleryGrid"></div>
+          </div>
+
+          <div style="display:flex;gap:10px;align-items:center;">
+            <a id="mediaPanelViewLink" href="#" target="_blank" class="media-view-link">
+              <i class="fas fa-external-link-alt"></i> View Product Page
+            </a>
+            <button class="btn-cancel" onclick="closeMediaPanel()"><i class="fas fa-times"></i> Close</button>
+          </div>
+        </div>
+
+        <div class="card-box">
+          <div class="card-box-header">
+            <h3><i class="fas fa-box"></i> All Products</h3>
+            <button class="refresh-btn" onclick="loadProducts()"><i class="fas fa-sync"></i> Refresh</button>
+          </div>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead><tr><th>Icon</th><th>Name</th><th>Duration</th><th>PKR</th><th>USDT</th><th>Badge</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="productsBody"><tr class="empty-row"><td colspan="8">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ORDERS -->
+      <div class="page-section" id="page-orders">
+        <div class="card-box">
+          <div class="card-box-header">
+            <h3><i class="fas fa-shopping-cart"></i> All Orders</h3>
+            <div class="section-actions">
+              <input class="search-input" id="orderSearch" placeholder="Search orders..." oninput="filterOrders()"/>
+              <button class="refresh-btn" onclick="loadOrders()"><i class="fas fa-sync"></i> Refresh</button>
+            </div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead><tr><th>Order ID</th><th>Customer</th><th>Contact</th><th>Product</th><th>PUBG ID</th><th>Payment</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+              <tbody id="ordersBody"><tr class="empty-row"><td colspan="9">No orders yet</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- REVIEWS -->
+      <div class="page-section" id="page-reviews">
+        <div class="card-box">
+          <div class="card-box-header">
+            <h3><i class="fas fa-star"></i> All Reviews</h3>
+            <button class="refresh-btn" onclick="loadReviews()"><i class="fas fa-sync"></i> Refresh</button>
+          </div>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead><tr><th>Name</th><th>Rating</th><th>Comment</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="reviewsBody"><tr class="empty-row"><td colspan="6">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- FAQ -->
+      <div class="page-section" id="page-faq">
+        <div class="form-section">
+          <h3><i class="fas fa-plus-circle"></i> <span id="faqFormTitle">Add FAQ Item</span></h3>
+          <input type="hidden" id="editFaqId"/>
+          <div class="form-grid full">
+            <div class="fg"><label>Question *</label><input id="faq-q" placeholder="Enter question..."/></div>
+            <div class="fg"><label>Answer *</label><textarea id="faq-a" rows="3" placeholder="Enter answer..."></textarea></div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-save" onclick="saveFaq()"><i class="fas fa-save"></i> <span id="faqSaveBtn">Add FAQ</span></button>
+            <button class="btn-cancel" onclick="resetFaqForm()"><i class="fas fa-times"></i> Cancel</button>
+          </div>
+        </div>
+        <div class="card-box">
+          <div class="card-box-header">
+            <h3><i class="fas fa-question-circle"></i> FAQ Items</h3>
+            <button class="refresh-btn" onclick="loadFaq()"><i class="fas fa-sync"></i> Refresh</button>
+          </div>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead><tr><th>#</th><th>Question</th><th>Answer</th><th>Actions</th></tr></thead>
+              <tbody id="faqBody"><tr class="empty-row"><td colspan="4">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="page-section" id="page-settings">
+        <div class="form-section">
+          <h3><i class="fas fa-info-circle"></i> Site Information</h3>
+          <div class="form-grid">
+            <div class="fg"><label>Site Name</label><input id="s-site-name" placeholder="Team ESP"/></div>
+            <div class="fg span2"><label>Tagline</label><input id="s-tagline" placeholder="Premium PUBG Subscriptions..."/></div>
+            <div class="fg"><label>Happy Customers</label><input id="s-customers" placeholder="5000+"/></div>
+            <div class="fg"><label>Delivery Time</label><input id="s-delivery" placeholder="1-5 MIN"/></div>
+            <div class="fg"><label>Rating</label><input id="s-rating" placeholder="4.9/5"/></div>
+          </div>
+        </div>
+        <div class="form-section">
+          <h3><i class="fas fa-share-alt"></i> Social Links</h3>
+          <div class="form-grid">
+            <div class="fg"><label>Telegram</label><input id="s-telegram" placeholder="@crew_r47"/></div>
+            <div class="fg"><label>WhatsApp</label><input id="s-whatsapp" placeholder="+923157744430"/></div>
+            <div class="fg"><label>Instagram</label><input id="s-instagram" placeholder="x.691337"/></div>
+            <div class="fg"><label>Discord</label><input id="s-discord" placeholder="ig.4kky"/></div>
+          </div>
+        </div>
+        <div class="form-section">
+          <h3><i class="fas fa-credit-card"></i> Payment Details</h3>
+          <div class="form-grid three">
+            <div class="fg"><label>Binance ID</label><input id="s-binance-id" placeholder="303792532"/></div>
+            <div class="fg"><label>Binance Name</label><input id="s-binance-name" placeholder="AkifShehroz"/></div>
+            <div class="fg"></div>
+            <div class="fg"><label>EasyPaisa Number</label><input id="s-easypaisa" placeholder="03402455177"/></div>
+            <div class="fg"><label>EasyPaisa Name</label><input id="s-easypaisa-name" placeholder="AKIF SHEHROZ"/></div>
+            <div class="fg"></div>
+            <div class="fg"><label>JazzCash Number</label><input id="s-jazzcash" placeholder="03402455177"/></div>
+            <div class="fg"><label>JazzCash Name</label><input id="s-jazzcash-name" placeholder="AKIF SHEHROZ"/></div>
+          </div>
+        </div>
+        <div class="form-section">
+          <h3><i class="fas fa-lock"></i> Change Password</h3>
+          <div class="form-grid">
+            <div class="fg"><label>New Password</label><input type="password" id="s-newpass" placeholder="Leave blank to keep current"/></div>
+            <div class="fg"><label>Confirm Password</label><input type="password" id="s-confpass" placeholder="Confirm new password"/></div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-save" onclick="saveSettings()"><i class="fas fa-save"></i> Save All Settings</button>
+        </div>
+      </div>
+
+    </div><!-- admin-content -->
+  </div><!-- admin-main -->
+</div><!-- admin-layout -->
+</div><!-- adminPage -->
+
+<!-- CONFIRM MODAL -->
+<div class="confirm-overlay" id="confirmModal">
+  <div class="confirm-box">
+    <div class="confirm-icon"><i class="fas fa-exclamation-triangle"></i></div>
+    <h3>Are You Sure?</h3>
+    <p id="confirmMsg">This action cannot be undone.</p>
+    <div class="confirm-btns">
+      <button class="confirm-yes" id="confirmYes">Delete</button>
+      <button class="confirm-no" onclick="closeConfirm()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="aToast"></div>
+
+<script>
+let token = localStorage.getItem('teamesp_token');
+let allOrders = [];
+let allProducts = [];
+let allReviews = [];
+let allFaq = [];
+
+// ─── AUTH ──────────────────────────────────
+if (token) showAdminUI();
+
+async function doLogin() {
+  const pw = document.getElementById('loginPassword').value;
+  if (!pw) return;
+  try {
+    const res = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pw })
+    });
+    const data = await res.json();
+    if (data.token) {
+      token = data.token;
+      localStorage.setItem('teamesp_token', token);
+      document.getElementById('loginErr').classList.remove('show');
+      showAdminUI();
+    } else {
+      document.getElementById('loginErr').classList.add('show');
+    }
+  } catch (e) {
+    document.getElementById('loginErr').textContent = 'Connection error. Please try again.';
+    document.getElementById('loginErr').classList.add('show');
+  }
+}
+
+function showAdminUI() {
+  document.getElementById('loginPage').style.display = 'none';
+  document.getElementById('adminPage').style.display = 'flex';
+  loadDashboard();
+}
+
+function doLogout() {
+  localStorage.removeItem('teamesp_token');
+  token = null;
+  document.getElementById('loginPage').style.display = 'flex';
+  document.getElementById('adminPage').style.display = 'none';
+}
+
+function authHeaders() {
+  return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+}
+
+async function api(method, url, body) {
+  const opts = { method, headers: authHeaders() };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(url, opts);
+  if (res.status === 401 || res.status === 403) { doLogout(); throw new Error('Unauthorized'); }
+  return res.json();
+}
+
+// ─── NAVIGATION ────────────────────────────
+const pageIcons = {
+  dashboard: 'fa-tachometer-alt', products: 'fa-box', orders: 'fa-shopping-cart',
+  reviews: 'fa-star', faq: 'fa-question-circle', settings: 'fa-cog'
+};
+const pageTitles = {
+  dashboard: 'Dashboard', products: 'Products', orders: 'Orders',
+  reviews: 'Reviews', faq: 'FAQ', settings: 'Settings'
+};
+
+function showPage(page, el) {
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.sb-nav a').forEach(a => a.classList.remove('active'));
+  document.getElementById(`page-${page}`).classList.add('active');
+  if (el) el.classList.add('active');
+  document.getElementById('topbarIcon').className = `fas ${pageIcons[page]}`;
+  document.getElementById('topbarTitle').textContent = pageTitles[page];
+  const loaders = { products: loadProducts, orders: loadOrders, reviews: loadReviews, faq: loadFaq, settings: loadSettings };
+  if (loaders[page]) loaders[page]();
+  return false;
+}
+
+// ─── DASHBOARD ─────────────────────────────
+async function loadDashboard() {
+  try {
+    const data = await api('GET', '/api/admin/dashboard');
+    const s = data.stats;
+    document.getElementById('d-total').textContent = s.total_orders;
+    document.getElementById('d-pending').textContent = s.pending_orders;
+    document.getElementById('d-completed').textContent = s.completed_orders;
+    document.getElementById('d-reviews').textContent = s.total_reviews;
+    document.getElementById('badge-orders').textContent = s.pending_orders;
+    document.getElementById('badge-reviews').textContent = s.pending_reviews;
+    allOrders = data.orders || [];
+    allProducts = data.products || [];
+    allReviews = data.reviews || [];
+    allFaq = data.faq || [];
+    // Recent orders
+    const recent = [...allOrders].reverse().slice(0, 10);
+    const body = document.getElementById('dashOrdersBody');
+    if (!recent.length) {
+      body.innerHTML = '<tr class="empty-row"><td colspan="7">No orders yet</td></tr>';
+    } else {
+      body.innerHTML = recent.map(o => `
+        <tr>
+          <td><code style="color:var(--gold);font-size:11px;">${o.id}</code></td>
+          <td>${o.customer_name}</td>
+          <td>${o.product_name}</td>
+          <td style="text-transform:capitalize">${o.payment_method}</td>
+          <td>${o.pubg_id}</td>
+          <td><span class="status-badge status-${o.status}">${o.status}</span></td>
+          <td style="font-size:11px;color:var(--text2)">${new Date(o.created_at).toLocaleString('en-PK',{dateStyle:'short',timeStyle:'short'})}</td>
+        </tr>
+      `).join('');
+    }
+  } catch (e) { toast('Failed to load data', 'error'); }
+}
+
+// ─── PRODUCTS ──────────────────────────────
+async function loadProducts() {
+  try {
+    const data = await api('GET', '/api/admin/dashboard');
+    allProducts = data.products || [];
+    renderProductsTable();
+  } catch(e) {}
+}
+
+function renderProductsTable() {
+  const body = document.getElementById('productsBody');
+  const iconMap = { day:'fa-calendar-day', week:'fa-calendar-week', month:'fa-calendar-alt', gamepad:'fa-gamepad' };
+  if (!allProducts.length) {
+    body.innerHTML = '<tr class="empty-row"><td colspan="8">No products yet</td></tr>';
+    return;
+  }
+  body.innerHTML = allProducts.map(p => `
+    <tr>
+      <td>${p.main_image
+        ? `<img src="${p.main_image}" style="width:44px;height:34px;object-fit:cover;border-radius:5px;border:1px solid var(--border);" onerror="this.style.display='none'">`
+        : `<i class="fas ${iconMap[p.icon]||'fa-calendar'} product-img-icon"></i>`
+      }</td>
+      <td style="font-weight:700;color:#fff">${p.name}</td>
+      <td>${p.duration || ''}</td>
+      <td style="color:var(--gold);font-weight:700">PKR ${Number(p.price_pkr).toLocaleString()}</td>
+      <td>$${p.price_usdt}</td>
+      <td>${p.badge ? `<span class="status-badge status-completed">${p.badge}</span>` : '<span style="color:var(--text3)">—</span>'}</td>
+      <td><span class="status-badge ${p.active ? 'status-completed' : 'status-cancelled'}">${p.active ? 'Active' : 'Inactive'}</span></td>
+      <td>
+        <div class="action-btns">
+          <button class="action-btn btn-edit" onclick="editProduct(${p.id})"><i class="fas fa-edit"></i> Edit</button>
+          <button class="action-btn btn-verify" onclick="openMediaPanel(${p.id})"><i class="fas fa-images"></i> Media</button>
+          <button class="action-btn ${p.active ? 'btn-toggle-on' : 'btn-toggle-off'}" onclick="toggleProduct(${p.id},${!p.active})">
+            <i class="fas fa-${p.active ? 'eye-slash' : 'eye'}"></i>
+          </button>
+          <button class="action-btn btn-del" onclick="confirmDelete('product',${p.id},'Delete this product?')"><i class="fas fa-trash"></i></button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function saveProduct() {
+  const id = document.getElementById('editProductId').value;
+  const body = {
+    name: document.getElementById('p-name').value.trim(),
+    duration: document.getElementById('p-duration').value.trim(),
+    icon: document.getElementById('p-icon').value,
+    price_pkr: parseFloat(document.getElementById('p-pkr').value),
+    price_usdt: parseFloat(document.getElementById('p-usdt').value),
+    badge: document.getElementById('p-badge').value,
+    description: document.getElementById('p-desc').value.trim()
+  };
+  if (!body.name || !body.duration || !body.price_pkr || !body.price_usdt) {
+    toast('Please fill all required fields', 'error'); return;
+  }
+  try {
+    if (id) {
+      await api('PUT', `/api/admin/products/${id}`, body);
+      toast('Product updated!', 'success');
+    } else {
+      await api('POST', '/api/admin/products', body);
+      toast('Product added!', 'success');
+    }
+    resetProductForm();
+    loadProducts();
+  } catch(e) { toast('Failed to save product', 'error'); }
+}
+
+function editProduct(id) {
+  const p = allProducts.find(x => x.id == id);
+  if (!p) return;
+  document.getElementById('editProductId').value = p.id;
+  document.getElementById('p-name').value = p.name;
+  document.getElementById('p-duration').value = p.duration || '';
+  document.getElementById('p-icon').value = p.icon || 'day';
+  document.getElementById('p-pkr').value = p.price_pkr;
+  document.getElementById('p-usdt').value = p.price_usdt;
+  document.getElementById('p-badge').value = p.badge || '';
+  document.getElementById('p-desc').value = p.description || '';
+  document.getElementById('productFormTitle').textContent = 'Edit Product';
+  document.getElementById('productSaveBtn').textContent = 'Update Product';
+  document.getElementById('productForm').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function resetProductForm() {
+  document.getElementById('editProductId').value = '';
+  ['p-name','p-duration','p-pkr','p-usdt','p-desc'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('p-icon').value = 'day';
+  document.getElementById('p-badge').value = '';
+  document.getElementById('productFormTitle').textContent = 'Add New Product';
+  document.getElementById('productSaveBtn').textContent = 'Add Product';
+}
+
+async function toggleProduct(id, active) {
+  try {
+    await api('PUT', `/api/admin/products/${id}`, { active });
+    toast(`Product ${active ? 'activated' : 'deactivated'}!`, 'success');
+    loadProducts();
+  } catch(e) { toast('Failed', 'error'); }
+}
+
+// ─── ORDERS ────────────────────────────────
+async function loadOrders() {
+  try {
+    const data = await api('GET', '/api/admin/dashboard');
+    allOrders = data.orders || [];
+    renderOrdersTable(allOrders);
+  } catch(e) {}
+}
+
+function renderOrdersTable(orders) {
+  const body = document.getElementById('ordersBody');
+  const reversed = [...orders].reverse();
+  if (!reversed.length) {
+    body.innerHTML = '<tr class="empty-row"><td colspan="9">No orders yet</td></tr>';
+    return;
+  }
+  body.innerHTML = reversed.map(o => `
+    <tr>
+      <td><code style="color:var(--gold);font-size:11px;">${o.id}</code></td>
+      <td style="font-weight:700">${o.customer_name}</td>
+      <td style="color:var(--text2)">${o.customer_contact}</td>
+      <td>${o.product_name}</td>
+      <td style="color:var(--gold)">${o.pubg_id}</td>
+      <td style="text-transform:capitalize">${o.payment_method}</td>
+      <td>
+        <select class="status-select" onchange="updateOrderStatus('${o.id}',this.value)">
+          <option value="pending" ${o.status==='pending'?'selected':''}>Pending</option>
+          <option value="completed" ${o.status==='completed'?'selected':''}>Completed</option>
+          <option value="cancelled" ${o.status==='cancelled'?'selected':''}>Cancelled</option>
+        </select>
+      </td>
+      <td style="font-size:11px;color:var(--text2)">${new Date(o.created_at).toLocaleString('en-PK',{dateStyle:'short',timeStyle:'short'})}</td>
+      <td>
+        <button class="action-btn btn-del" onclick="confirmDelete('order','${o.id}','Delete this order?')"><i class="fas fa-trash"></i></button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function filterOrders() {
+  const q = document.getElementById('orderSearch').value.toLowerCase();
+  const filtered = allOrders.filter(o =>
+    o.id.toLowerCase().includes(q) ||
+    o.customer_name.toLowerCase().includes(q) ||
+    o.pubg_id.toLowerCase().includes(q) ||
+    o.product_name.toLowerCase().includes(q)
+  );
+  renderOrdersTable(filtered);
+}
+
+async function updateOrderStatus(id, status) {
+  try {
+    await api('PUT', `/api/admin/orders/${id}`, { status });
+    toast(`Status updated to ${status}!`, 'success');
+    loadDashboard();
+  } catch(e) { toast('Failed to update status', 'error'); }
+}
+
+// ─── REVIEWS ───────────────────────────────
+async function loadReviews() {
+  try {
+    const data = await api('GET', '/api/admin/dashboard');
+    allReviews = data.reviews || [];
+    renderReviewsTable();
+  } catch(e) {}
+}
+
+function renderReviewsTable() {
+  const body = document.getElementById('reviewsBody');
+  if (!allReviews.length) {
+    body.innerHTML = '<tr class="empty-row"><td colspan="6">No reviews yet</td></tr>';
+    return;
+  }
+  body.innerHTML = [...allReviews].reverse().map(r => `
+    <tr>
+      <td style="font-weight:700;color:#fff">${r.name}</td>
+      <td><span class="stars-display">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</span></td>
+      <td style="max-width:250px;font-size:12px;color:var(--text2)">${r.comment}</td>
+      <td style="font-size:11px;color:var(--text2)">${r.date}</td>
+      <td>
+        ${r.pending
+          ? '<span class="status-badge status-pending-rev">Pending</span>'
+          : '<span class="status-badge status-approved">Approved</span>'
+        }
+        ${r.verified ? '<span style="font-size:10px;color:var(--blue);margin-left:4px">✓ Verified</span>' : ''}
+      </td>
+      <td>
+        <div class="action-btns">
+          ${r.pending ? `<button class="action-btn btn-approve" onclick="approveReview(${r.id})"><i class="fas fa-check"></i> Approve</button>` : ''}
+          ${!r.verified ? `<button class="action-btn btn-verify" onclick="verifyReview(${r.id})"><i class="fas fa-badge-check"></i> Verify</button>` : ''}
+          <button class="action-btn btn-del" onclick="confirmDelete('review',${r.id},'Delete this review?')"><i class="fas fa-trash"></i></button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function approveReview(id) {
+  try {
+    await api('PUT', `/api/admin/reviews/${id}`, { pending: false });
+    toast('Review approved!', 'success');
+    loadReviews();
+    loadDashboard();
+  } catch(e) { toast('Failed', 'error'); }
+}
+
+async function verifyReview(id) {
+  try {
+    await api('PUT', `/api/admin/reviews/${id}`, { verified: true });
+    toast('Review verified!', 'success');
+    loadReviews();
+  } catch(e) { toast('Failed', 'error'); }
+}
+
+// ─── FAQ ───────────────────────────────────
+async function loadFaq() {
+  try {
+    const data = await api('GET', '/api/admin/dashboard');
+    allFaq = data.faq || [];
+    renderFaqTable();
+  } catch(e) {}
+}
+
+function renderFaqTable() {
+  const body = document.getElementById('faqBody');
+  if (!allFaq.length) {
+    body.innerHTML = '<tr class="empty-row"><td colspan="4">No FAQ items yet</td></tr>';
+    return;
+  }
+  body.innerHTML = allFaq.map((f, i) => `
+    <tr>
+      <td style="color:var(--gold);font-weight:800">${i+1}</td>
+      <td style="font-weight:700;color:#fff;max-width:200px">${f.question}</td>
+      <td style="font-size:12px;color:var(--text2);max-width:300px">${f.answer}</td>
+      <td>
+        <div class="action-btns">
+          <button class="action-btn btn-edit" onclick="editFaq(${f.id})"><i class="fas fa-edit"></i> Edit</button>
+          <button class="action-btn btn-del" onclick="confirmDelete('faq',${f.id},'Delete this FAQ item?')"><i class="fas fa-trash"></i></button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function saveFaq() {
+  const id = document.getElementById('editFaqId').value;
+  const question = document.getElementById('faq-q').value.trim();
+  const answer = document.getElementById('faq-a').value.trim();
+  if (!question || !answer) { toast('Please fill all fields', 'error'); return; }
+  try {
+    if (id) {
+      await api('PUT', `/api/admin/faq/${id}`, { question, answer });
+      toast('FAQ updated!', 'success');
+    } else {
+      await api('POST', '/api/admin/faq', { question, answer });
+      toast('FAQ added!', 'success');
+    }
+    resetFaqForm();
+    loadFaq();
+  } catch(e) { toast('Failed to save FAQ', 'error'); }
+}
+
+function editFaq(id) {
+  const f = allFaq.find(x => x.id == id);
+  if (!f) return;
+  document.getElementById('editFaqId').value = f.id;
+  document.getElementById('faq-q').value = f.question;
+  document.getElementById('faq-a').value = f.answer;
+  document.getElementById('faqFormTitle').textContent = 'Edit FAQ Item';
+  document.getElementById('faqSaveBtn').textContent = 'Update FAQ';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function resetFaqForm() {
+  document.getElementById('editFaqId').value = '';
+  document.getElementById('faq-q').value = '';
+  document.getElementById('faq-a').value = '';
+  document.getElementById('faqFormTitle').textContent = 'Add FAQ Item';
+  document.getElementById('faqSaveBtn').textContent = 'Add FAQ';
+}
+
+// ─── SETTINGS ──────────────────────────────
+async function loadSettings() {
+  try {
+    const data = await api('GET', '/api/admin/dashboard');
+    const s = data.settings || {};
+    document.getElementById('s-site-name').value = s.site_name || '';
+    document.getElementById('s-tagline').value = s.tagline || '';
+    document.getElementById('s-customers').value = s.happy_customers || '';
+    document.getElementById('s-delivery').value = s.delivery_time || '';
+    document.getElementById('s-rating').value = s.rating || '';
+    document.getElementById('s-telegram').value = s.telegram || '';
+    document.getElementById('s-whatsapp').value = s.whatsapp || '';
+    document.getElementById('s-instagram').value = s.instagram || '';
+    document.getElementById('s-discord').value = s.discord || '';
+    document.getElementById('s-binance-id').value = s.binance_id || '';
+    document.getElementById('s-binance-name').value = s.binance_name || '';
+    document.getElementById('s-easypaisa').value = s.easypaisa || '';
+    document.getElementById('s-easypaisa-name').value = s.easypaisa_name || '';
+    document.getElementById('s-jazzcash').value = s.jazzcash || '';
+    document.getElementById('s-jazzcash-name').value = s.jazzcash_name || '';
+  } catch(e) {}
+}
+
+async function saveSettings() {
+  const np = document.getElementById('s-newpass').value;
+  const cp = document.getElementById('s-confpass').value;
+  if (np && np !== cp) { toast('Passwords do not match!', 'error'); return; }
+  const body = {
+    site_name: document.getElementById('s-site-name').value.trim(),
+    tagline: document.getElementById('s-tagline').value.trim(),
+    happy_customers: document.getElementById('s-customers').value.trim(),
+    delivery_time: document.getElementById('s-delivery').value.trim(),
+    rating: document.getElementById('s-rating').value.trim(),
+    telegram: document.getElementById('s-telegram').value.trim(),
+    whatsapp: document.getElementById('s-whatsapp').value.trim(),
+    instagram: document.getElementById('s-instagram').value.trim(),
+    discord: document.getElementById('s-discord').value.trim(),
+    binance_id: document.getElementById('s-binance-id').value.trim(),
+    binance_name: document.getElementById('s-binance-name').value.trim(),
+    easypaisa: document.getElementById('s-easypaisa').value.trim(),
+    easypaisa_name: document.getElementById('s-easypaisa-name').value.trim(),
+    jazzcash: document.getElementById('s-jazzcash').value.trim(),
+    jazzcash_name: document.getElementById('s-jazzcash-name').value.trim(),
+  };
+  if (np) body.new_password = np;
+  try {
+    await api('PUT', '/api/admin/settings', body);
+    document.getElementById('s-newpass').value = '';
+    document.getElementById('s-confpass').value = '';
+    toast('Settings saved successfully!', 'success');
+  } catch(e) { toast('Failed to save settings', 'error'); }
+}
+
+// ─── MEDIA PANEL ────────────────────────────
+let mediaPanelProductId = null;
+
+function openMediaPanel(id) {
+  const p = allProducts.find(x => x.id == id);
+  if (!p) return;
+  mediaPanelProductId = id;
+  document.getElementById('mediaPanel').classList.add('open');
+  document.getElementById('mediaPanelProductName').textContent = `— ${p.name}`;
+  document.getElementById('mediaPanelViewLink').href = `/product/${id}`;
+
+  // Populate current values
+  document.getElementById('main-img-url').value = p.main_image || '';
+  document.getElementById('video-url-input').value = p.video_url || '';
+
+  // Show main image preview
+  if (p.main_image) {
+    document.getElementById('main-img-preview').innerHTML =
+      `<img src="${p.main_image}" alt="Main Image"/><br><a href="${p.main_image}" target="_blank" class="media-view-link"><i class="fas fa-external-link-alt"></i> View</a>`;
+  } else {
+    document.getElementById('main-img-preview').innerHTML = '';
+  }
+
+  // Show video preview
+  if (p.video_url) {
+    const isYT = p.video_url.includes('youtube') || p.video_url.includes('youtu.be');
+    document.getElementById('video-preview').innerHTML = isYT
+      ? `<p style="font-size:12px;color:var(--gold);margin-top:6px;"><i class="fab fa-youtube"></i> YouTube video set: <a href="${p.video_url}" target="_blank" style="color:var(--gold);">${p.video_url}</a></p>`
+      : `<video src="${p.video_url}" controls></video>`;
+  } else {
+    document.getElementById('video-preview').innerHTML = '';
+  }
+
+  // Gallery
+  renderGalleryGrid(p.gallery || []);
+  document.getElementById('mediaPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function closeMediaPanel() {
+  document.getElementById('mediaPanel').classList.remove('open');
+  mediaPanelProductId = null;
+}
+
+function renderGalleryGrid(gallery) {
+  const grid = document.getElementById('galleryGrid');
+  if (!gallery.length) { grid.innerHTML = '<p style="font-size:12px;color:var(--text3);padding:6px 0;">No gallery images yet.</p>'; return; }
+  grid.innerHTML = gallery.map(url => `
+    <div class="gallery-thumb">
+      <img src="${url}" alt="" onerror="this.parentElement.style.display='none'"/>
+      <button class="gallery-thumb-del" onclick="deleteGalleryImage('${url}')"><i class="fas fa-times"></i></button>
+    </div>
+  `).join('');
+}
+
+// ── MAIN IMAGE ──
+async function saveMainImageUrl() {
+  const url = document.getElementById('main-img-url').value.trim();
+  if (!url || !mediaPanelProductId) return;
+  try {
+    await api('PUT', `/api/admin/products/${mediaPanelProductId}`, { main_image: url });
+    toast('Main image URL saved!', 'success');
+    document.getElementById('main-img-preview').innerHTML =
+      `<img src="${url}" alt="Main Image"/><br><a href="${url}" target="_blank" class="media-view-link"><i class="fas fa-external-link-alt"></i> View</a>`;
+    updateLocalProduct(mediaPanelProductId, { main_image: url });
+    loadProducts();
+  } catch(e) { toast('Failed to save', 'error'); }
+}
+
+async function uploadMainImage(input) {
+  if (!input.files.length || !mediaPanelProductId) return;
+  const formData = new FormData();
+  formData.append('image', input.files[0]);
+  const prog = document.getElementById('main-upload-progress');
+  const bar  = document.getElementById('main-upload-bar');
+  prog.style.display = 'block'; bar.style.width = '20%';
+  try {
+    const res = await fetch(`/api/admin/products/${mediaPanelProductId}/upload-image`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: formData
+    });
+    bar.style.width = '100%';
+    const data = await res.json();
+    if (data.success) {
+      toast('Image uploaded!', 'success');
+      document.getElementById('main-img-url').value = data.url;
+      document.getElementById('main-img-preview').innerHTML =
+        `<img src="${data.url}" alt="Main Image"/>`;
+      updateLocalProduct(mediaPanelProductId, { main_image: data.url });
+      loadProducts();
+    } else { toast(data.error || 'Upload failed', 'error'); }
+  } catch(e) { toast('Upload failed', 'error'); }
+  setTimeout(() => { prog.style.display='none'; bar.style.width='0%'; input.value=''; }, 1200);
+}
+
+// ── VIDEO ──
+async function saveVideoUrl() {
+  const url = document.getElementById('video-url-input').value.trim();
+  if (!url || !mediaPanelProductId) return;
+  try {
+    await api('PUT', `/api/admin/products/${mediaPanelProductId}`, { video_url: url });
+    toast('Video URL saved!', 'success');
+    const isYT = url.includes('youtube') || url.includes('youtu.be');
+    document.getElementById('video-preview').innerHTML = isYT
+      ? `<p style="font-size:12px;color:var(--gold);margin-top:6px;"><i class="fab fa-youtube"></i> YouTube set: <a href="${url}" target="_blank" style="color:var(--gold);">${url}</a></p>`
+      : `<video src="${url}" controls></video>`;
+    updateLocalProduct(mediaPanelProductId, { video_url: url });
+  } catch(e) { toast('Failed', 'error'); }
+}
+
+async function uploadVideoFile(input) {
+  if (!input.files.length || !mediaPanelProductId) return;
+  const formData = new FormData();
+  formData.append('image', input.files[0]); // multer accepts via 'image' field for any file
+  const prog = document.getElementById('video-upload-progress');
+  const bar  = document.getElementById('video-upload-bar');
+  prog.style.display = 'block'; bar.style.width = '20%';
+  try {
+    const res = await fetch(`/api/admin/products/${mediaPanelProductId}/upload-image`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: formData
+    });
+    bar.style.width = '100%';
+    const data = await res.json();
+    if (data.success) {
+      toast('Video uploaded!', 'success');
+      document.getElementById('video-url-input').value = data.url;
+      document.getElementById('video-preview').innerHTML = `<video src="${data.url}" controls></video>`;
+      await api('PUT', `/api/admin/products/${mediaPanelProductId}`, { video_url: data.url });
+      updateLocalProduct(mediaPanelProductId, { video_url: data.url });
+    } else { toast(data.error || 'Upload failed', 'error'); }
+  } catch(e) { toast('Upload failed', 'error'); }
+  setTimeout(() => { prog.style.display='none'; bar.style.width='0%'; input.value=''; }, 1200);
+}
+
+// ── GALLERY ──
+async function addGalleryUrl() {
+  const url = document.getElementById('gallery-url-input').value.trim();
+  if (!url || !mediaPanelProductId) return;
+  const p = allProducts.find(x => x.id == mediaPanelProductId);
+  if (!p) return;
+  const gallery = [...(p.gallery || []), url];
+  try {
+    await api('PUT', `/api/admin/products/${mediaPanelProductId}`, { gallery });
+    toast('Gallery image added!', 'success');
+    document.getElementById('gallery-url-input').value = '';
+    updateLocalProduct(mediaPanelProductId, { gallery });
+    renderGalleryGrid(gallery);
+    loadProducts();
+  } catch(e) { toast('Failed', 'error'); }
+}
+
+async function uploadGalleryFiles(input) {
+  if (!input.files.length || !mediaPanelProductId) return;
+  const formData = new FormData();
+  Array.from(input.files).forEach(f => formData.append('gallery', f));
+  const prog = document.getElementById('gallery-upload-progress');
+  const bar  = document.getElementById('gallery-upload-bar');
+  prog.style.display = 'block'; bar.style.width = '20%';
+  try {
+    const res = await fetch(`/api/admin/products/${mediaPanelProductId}/upload-gallery`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: formData
+    });
+    bar.style.width = '100%';
+    const data = await res.json();
+    if (data.success) {
+      toast(`${data.urls.length} image(s) uploaded!`, 'success');
+      updateLocalProduct(mediaPanelProductId, { gallery: data.gallery });
+      renderGalleryGrid(data.gallery);
+      loadProducts();
+    } else { toast(data.error || 'Upload failed', 'error'); }
+  } catch(e) { toast('Upload failed', 'error'); }
+  setTimeout(() => { prog.style.display='none'; bar.style.width='0%'; input.value=''; }, 1200);
+}
+
+async function deleteGalleryImage(url) {
+  if (!mediaPanelProductId) return;
+  try {
+    const res = await fetch(`/api/admin/products/${mediaPanelProductId}/gallery`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ url })
+    });
+    const data = await res.json();
+    if (data.success) {
+      toast('Image removed!', 'success');
+      updateLocalProduct(mediaPanelProductId, { gallery: data.gallery });
+      renderGalleryGrid(data.gallery);
+      loadProducts();
+    }
+  } catch(e) { toast('Failed to remove', 'error'); }
+}
+
+function updateLocalProduct(id, updates) {
+  const idx = allProducts.findIndex(x => x.id == id);
+  if (idx !== -1) allProducts[idx] = { ...allProducts[idx], ...updates };
+}
+
+// ─── DELETE ────────────────────────────────
+let pendingDelete = null;
+
+function confirmDelete(type, id, msg) {
+  pendingDelete = { type, id };
+  document.getElementById('confirmMsg').textContent = msg;
+  document.getElementById('confirmYes').onclick = executeDelete;
+  document.getElementById('confirmModal').classList.add('open');
+}
+
+function closeConfirm() {
+  document.getElementById('confirmModal').classList.remove('open');
+  pendingDelete = null;
+}
+
+async function executeDelete() {
+  closeConfirm();
+  if (!pendingDelete) return;
+  const { type, id } = pendingDelete;
+  const urlMap = { product: `/api/admin/products/${id}`, order: `/api/admin/orders/${id}`, review: `/api/admin/reviews/${id}`, faq: `/api/admin/faq/${id}` };
+  try {
+    await api('DELETE', urlMap[type]);
+    toast('Deleted successfully!', 'success');
+    const reloadMap = { product: loadProducts, order: loadOrders, review: loadReviews, faq: loadFaq };
+    if (reloadMap[type]) reloadMap[type]();
+    loadDashboard();
+  } catch(e) { toast('Failed to delete', 'error'); }
+}
+
+// ─── TOAST ────────────────────────────────
+function toast(msg, type = 'success') {
+  const t = document.getElementById('aToast');
+  t.textContent = msg;
+  t.className = `show ${type}`;
+  clearTimeout(window._at);
+  window._at = setTimeout(() => t.className = '', 3500);
+}
+
+// Keyboard: Enter for login
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeConfirm();
+});
+</script>
+</body>
+</html>

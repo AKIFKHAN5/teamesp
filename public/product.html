@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Product — Team ESP</title>
+  <meta name="description" content="View product details, images, video, and buy now."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&family=Exo+2:wght@300;400;500;600;700;800&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <style>
+    .btn-primary {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 13px 28px; background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+      color: #000; font-family: 'Exo 2', sans-serif; font-size: 13px; font-weight: 800;
+      letter-spacing: 1.5px; text-transform: uppercase; border-radius: var(--radius2);
+      border: none; cursor: pointer; transition: var(--transition);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: var(--shadow-gold); }
+    .btn-outline {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 13px 28px; background: transparent; color: var(--gold);
+      border: 1px solid var(--border2); border-radius: var(--radius2);
+      font-family: 'Exo 2', sans-serif; font-size: 13px; font-weight: 700;
+      letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; transition: var(--transition);
+    }
+    .btn-outline:hover { background: rgba(245,166,35,0.08); border-color: var(--gold); }
+    .full-btn { width: 100%; }
+    .section-eyebrow {
+      font-family: 'Exo 2', sans-serif; font-size: 11px; font-weight: 800;
+      letter-spacing: 4px; color: var(--gold); text-transform: uppercase; margin-bottom: 10px;
+    }
+    .section-title {
+      font-family: 'Orbitron', sans-serif; font-size: clamp(22px, 3vw, 34px);
+      font-weight: 800; color: var(--white); letter-spacing: 2px; margin-bottom: 12px;
+    }
+    .section-line {
+      width: 50px; height: 3px; background: linear-gradient(90deg, var(--gold-dark), var(--gold));
+      border-radius: 2px; margin-bottom: 16px;
+    }
+    /* Nav reuse */
+    #navbar { position: fixed; top:0; left:0; right:0; z-index:1000; padding:0 20px;
+      background: rgba(8,11,18,0.95); backdrop-filter:blur(16px);
+      border-bottom:1px solid var(--border); }
+    .nav-container { max-width:1400px; margin:0 auto; display:flex; align-items:center; height:72px; gap:24px; }
+    .nav-logo { display:flex; align-items:center; gap:10px; }
+    .logo-icon { width:46px; height:46px; background:linear-gradient(135deg,var(--gold-dark),var(--gold));
+      border-radius:10px; display:flex; align-items:center; justify-content:center;
+      font-size:20px; color:#000; box-shadow:var(--shadow-gold); }
+    .logo-text { font-family:'Orbitron',sans-serif; font-size:16px; font-weight:900;
+      color:var(--white); line-height:1.1; letter-spacing:1px; }
+    .logo-text span { color:var(--gold); }
+    .nav-back { margin-left:auto; font-family:'Exo 2',sans-serif; font-size:12px;
+      font-weight:700; letter-spacing:1px; color:var(--text2); display:flex; align-items:center;
+      gap:8px; transition:var(--transition); padding:8px 16px; border:1px solid var(--border);
+      border-radius:6px; }
+    .nav-back:hover { color:var(--gold); border-color:var(--border2); }
+    /* Toast */
+    .toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(20px);
+      background:var(--card); border:1px solid var(--border); border-radius:10px;
+      padding:14px 24px; font-family:'Exo 2',sans-serif; font-size:14px; font-weight:600;
+      color:var(--white); z-index:9999; opacity:0; transition:all 0.35s; pointer-events:none;
+      white-space:nowrap; box-shadow:var(--shadow); }
+    .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+    .toast.success { border-color:var(--green); color:var(--green); }
+    .toast.error   { border-color:var(--red); color:var(--red); }
+    /* Order modal */
+    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:5000;
+      display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none;
+      transition:opacity 0.3s; padding:16px; }
+    .modal-overlay.open { opacity:1; pointer-events:all; }
+    .modal { background:var(--card); border:1px solid var(--border2); border-radius:var(--radius);
+      width:100%; max-width:520px; max-height:90vh; overflow-y:auto; padding:32px; position:relative; }
+    .modal-close { position:absolute; top:16px; right:16px; background:transparent; border:none;
+      color:var(--text3); font-size:18px; cursor:pointer; transition:var(--transition); }
+    .modal-close:hover { color:var(--gold); }
+    .modal-header { display:flex; align-items:center; gap:12px; margin-bottom:20px; }
+    .modal-header i { font-size:24px; color:var(--gold); }
+    .modal-header h2 { font-family:'Orbitron',sans-serif; font-size:18px; font-weight:800; color:var(--white); }
+    .modal-product-info { background:rgba(245,166,35,0.06); border:1px solid var(--border2);
+      border-radius:var(--radius2); padding:12px 16px; margin-bottom:20px;
+      font-family:'Exo 2',sans-serif; font-size:14px; color:var(--text2); }
+    .modal-product-info strong { color:var(--gold); }
+    .mf-group { margin-bottom:16px; }
+    .mf-group label { display:block; font-family:'Exo 2',sans-serif; font-size:12px; font-weight:700;
+      letter-spacing:1px; color:var(--text3); text-transform:uppercase; margin-bottom:6px; }
+    .mf-group input, .mf-group select, .mf-group textarea {
+      width:100%; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius2);
+      padding:11px 14px; color:var(--text); font-family:'Exo 2',sans-serif; font-size:14px; outline:none;
+      transition:var(--transition); }
+    .mf-group input:focus, .mf-group select:focus, .mf-group textarea:focus { border-color:var(--gold); }
+    .mf-group select option { background:var(--bg3); }
+    .mf-group textarea { resize:vertical; }
+    .modal-notice { background:rgba(245,166,35,0.05); border:1px solid var(--border);
+      border-radius:var(--radius2); padding:12px 14px; display:flex; align-items:flex-start; gap:10px;
+      font-family:'Exo 2',sans-serif; font-size:12px; color:var(--text3); margin-bottom:16px; }
+    .modal-notice i { color:var(--gold); margin-top:2px; flex-shrink:0; }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav id="navbar">
+  <div class="nav-container">
+    <a href="/" class="nav-logo">
+      <div class="logo-icon"><i class="fas fa-crosshairs"></i></div>
+      <div class="logo-text">TEAM<br><span>ESP</span></div>
+    </a>
+    <a href="/#subscriptions" class="nav-back">
+      <i class="fas fa-arrow-left"></i> Back to Plans
+    </a>
+  </div>
+</nav>
+
+<!-- MAIN CONTENT -->
+<div class="product-detail-page">
+  <div id="pdContent">
+    <!-- Loading state -->
+    <div class="pd-loading" id="pdLoading">
+      <i class="fas fa-crosshairs"></i>
+      <p>LOADING PRODUCT...</p>
+    </div>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="pd-lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="pd-lightbox-close" onclick="closeLightbox()"><i class="fas fa-times"></i></button>
+  <img id="lightboxImg" src="" alt=""/>
+</div>
+
+<!-- ORDER MODAL -->
+<div class="modal-overlay" id="orderModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeOrderModal()"><i class="fas fa-times"></i></button>
+    <div class="modal-header">
+      <i class="fas fa-shopping-cart"></i>
+      <h2>Place Your Order</h2>
+    </div>
+    <div class="modal-product-info" id="modalProductInfo"></div>
+    <div class="modal-form">
+      <input type="hidden" id="orderProductId"/>
+      <div class="mf-group">
+        <label>Your Full Name *</label>
+        <input type="text" id="orderName" placeholder="e.g. Ahmed Ali"/>
+      </div>
+      <div class="mf-group">
+        <label>WhatsApp / Telegram Number *</label>
+        <input type="text" id="orderContact" placeholder="e.g. +923001234567"/>
+      </div>
+      <div class="mf-group">
+        <label>Your PUBG ID *</label>
+        <input type="text" id="orderPubgId" placeholder="Enter your PUBG Mobile ID"/>
+      </div>
+      <div class="mf-group">
+        <label>Payment Method *</label>
+        <select id="orderPayment">
+          <option value="">— Select Payment Method —</option>
+          <option value="binance">Binance Pay (USDT)</option>
+          <option value="easypaisa">EasyPaisa</option>
+          <option value="jazzcash">JazzCash</option>
+        </select>
+      </div>
+      <div class="mf-group">
+        <label>Additional Notes (optional)</label>
+        <textarea id="orderNotes" rows="2" placeholder="Any special instructions..."></textarea>
+      </div>
+      <div class="modal-notice">
+        <i class="fas fa-info-circle"></i>
+        After placing order, complete payment and send screenshot on WhatsApp/Telegram with your Order ID.
+      </div>
+      <button class="btn-primary full-btn" onclick="submitOrder()">
+        <i class="fas fa-check-circle"></i> CONFIRM ORDER
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- SUCCESS MODAL -->
+<div class="modal-overlay" id="successModal">
+  <div class="modal" style="text-align:center; max-width:440px;">
+    <div style="font-size:60px; color:var(--green); margin-bottom:16px;"><i class="fas fa-check-circle"></i></div>
+    <h2 style="font-family:'Orbitron',sans-serif; font-size:22px; margin-bottom:8px;">Order Placed! 🎉</h2>
+    <p style="color:var(--text2); font-family:'Exo 2',sans-serif; margin-bottom:12px;">Your order ID is:</p>
+    <div id="orderIdDisplay" style="font-family:'Orbitron',sans-serif; font-size:20px; color:var(--gold);
+      background:rgba(245,166,35,0.08); border:1px solid var(--border2); border-radius:8px;
+      padding:12px 20px; margin-bottom:16px; letter-spacing:2px;">ESP-XXXXXXX</div>
+    <p style="font-size:13px; color:var(--text3); font-family:'Exo 2',sans-serif; margin-bottom:24px;">
+      Now complete your payment and send the screenshot on <strong>WhatsApp</strong> or <strong>Telegram</strong>.
+    </p>
+    <div style="display:flex; gap:12px; justify-content:center; margin-bottom:16px;">
+      <a id="successWhatsapp" href="#" target="_blank"
+         style="padding:11px 20px; background:#25d366; color:#fff; border-radius:8px; font-family:'Exo 2',sans-serif;
+                font-size:13px; font-weight:700; display:flex; align-items:center; gap:8px;">
+        <i class="fab fa-whatsapp"></i> WhatsApp
+      </a>
+      <a id="successTelegram" href="#" target="_blank"
+         style="padding:11px 20px; background:#0088cc; color:#fff; border-radius:8px; font-family:'Exo 2',sans-serif;
+                font-size:13px; font-weight:700; display:flex; align-items:center; gap:8px;">
+        <i class="fab fa-telegram"></i> Telegram
+      </a>
+    </div>
+    <button class="btn-outline" onclick="closeSuccessModal()">Close</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="toast"></div>
+
+<script>
+let productData = null;
+let settings = {};
+let activeMediaIndex = 0;
+
+// ─── INIT ────────────────────────────────────────────
+async function init() {
+  const id = window.location.pathname.split('/').pop();
+  if (!id) return showError('No product ID found.');
+
+  try {
+    const [productRes, settingsRes] = await Promise.all([
+      fetch(`/api/products/${id}`),
+      fetch('/api/settings')
+    ]);
+    if (!productRes.ok) return showError('Product not found.');
+    productData = await productRes.json();
+    settings    = await settingsRes.json();
+    document.title = `${productData.name} — Team ESP`;
+    renderProduct(productData);
+  } catch(e) {
+    showError('Failed to load product.');
+  }
+}
+
+function showError(msg) {
+  document.getElementById('pdContent').innerHTML = `
+    <div class="pd-error container">
+      <i class="fas fa-exclamation-circle"></i>
+      <h2 style="font-family:'Orbitron',sans-serif; margin-bottom:12px;">Oops!</h2>
+      <p style="color:var(--text2); font-family:'Exo 2',sans-serif; margin-bottom:24px;">${msg}</p>
+      <a href="/" class="btn-primary"><i class="fas fa-arrow-left"></i> Back to Home</a>
+    </div>
+  `;
+}
+
+function renderProduct(p) {
+  const iconMap = { day: 'fa-calendar-day', week: 'fa-calendar-week', month: 'fa-calendar-alt' };
+  const icon = iconMap[p.icon] || 'fa-calendar';
+
+  // Build media list: [main_image, ...gallery, video_url]
+  const allMedia = [];
+  if (p.main_image) allMedia.push({ type: 'image', url: p.main_image });
+  (p.gallery || []).forEach(u => allMedia.push({ type: 'image', url: u }));
+  if (p.video_url) allMedia.push({ type: 'video', url: p.video_url });
+
+  const hasMedia = allMedia.length > 0;
+
+  // Main media display
+  const mainMediaHTML = hasMedia
+    ? renderMediaItem(allMedia[0], true)
+    : `<div class="pd-no-media">
+        <i class="fas ${icon}"></i>
+        <p>No media uploaded yet</p>
+      </div>`;
+
+  // Thumbnails
+  const thumbsHTML = allMedia.length > 1
+    ? `<div class="pd-thumbs" id="pdThumbs">
+        ${allMedia.map((m, i) => `
+          <div class="pd-thumb ${i === 0 ? 'active' : ''}" onclick="switchMedia(${i})">
+            ${m.type === 'video'
+              ? `<div class="pd-thumb-video"><i class="fas fa-play-circle"></i></div>`
+              : `<img src="${m.url}" alt=""/>`
+            }
+          </div>
+        `).join('')}
+      </div>`
+    : '';
+
+  // Gallery section
+  const galleryImages = (p.gallery || []);
+  const galleryHTML = galleryImages.length > 0
+    ? `<section class="pd-gallery-section">
+        <div class="container">
+          <div class="section-eyebrow">MEDIA GALLERY</div>
+          <div class="section-title">SCREENSHOTS & PREVIEWS</div>
+          <div class="section-line"></div>
+          <div class="pd-gallery-grid">
+            ${galleryImages.map(url => `
+              <div class="pd-gallery-item" onclick="openLightbox('${url}')">
+                <img src="${url}" alt="Gallery" loading="lazy"/>
+                <div class="pd-gallery-overlay"><i class="fas fa-expand-alt"></i></div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </section>`
+    : '';
+
+  document.getElementById('pdContent').innerHTML = `
+    <!-- HERO SECTION -->
+    <div class="pd-hero">
+      <div class="container">
+        <div class="pd-breadcrumb">
+          <a href="/">Home</a> &nbsp;›&nbsp; <a href="/#subscriptions">Subscriptions</a> &nbsp;›&nbsp; ${p.name}
+        </div>
+        <div class="pd-hero-grid">
+          <!-- LEFT: Media Viewer -->
+          <div class="pd-media-viewer">
+            <div class="pd-main-media" id="pdMainMedia">
+              ${mainMediaHTML}
+            </div>
+            ${thumbsHTML}
+          </div>
+
+          <!-- RIGHT: Info Panel -->
+          <div class="pd-info">
+            <div class="pd-badge-row">
+              ${p.badge ? `<div class="pd-badge">${p.badge}</div>` : ''}
+              <div class="pd-badge outline"><i class="fas fa-gamepad"></i> PUBG MOBILE</div>
+            </div>
+
+            <div class="pd-name">${p.duration || p.name}<br><span>SUBSCRIPTION</span></div>
+
+            <p class="pd-desc">${p.description || 'Premium PUBG subscription with instant delivery and 24/7 support.'}</p>
+
+            <div class="pd-price-box">
+              <div>
+                <div style="font-family:'Exo 2',sans-serif; font-size:11px; color:var(--text3); letter-spacing:2px; margin-bottom:4px;">PRICE</div>
+                <div class="pd-price-pkr"><span>PKR</span> ${Number(p.price_pkr).toLocaleString()}</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-family:'Exo 2',sans-serif; font-size:11px; color:var(--text3); letter-spacing:2px; margin-bottom:4px;">USDT</div>
+                <div class="pd-price-usdt">$${p.price_usdt} USDT</div>
+              </div>
+            </div>
+
+            <div class="pd-features">
+              <div class="pd-feature"><i class="fas fa-bolt"></i> Instant activation (1–5 minutes)</div>
+              <div class="pd-feature"><i class="fas fa-shield-alt"></i> 100% safe — no password needed</div>
+              <div class="pd-feature"><i class="fas fa-headset"></i> 24/7 customer support</div>
+              <div class="pd-feature"><i class="fas fa-clock"></i> Duration: ${p.duration || p.name}</div>
+              <div class="pd-feature"><i class="fas fa-mobile-alt"></i> PUBG Mobile (all regions)</div>
+            </div>
+
+            <div class="pd-action-btns">
+              <button class="btn-primary" onclick="openOrderModal(${p.id}, '${p.name}', ${p.price_pkr}, ${p.price_usdt})">
+                <i class="fas fa-shopping-cart"></i> BUY NOW
+              </button>
+              <a href="https://wa.me/${(settings.whatsapp||'').replace(/[^0-9]/g,'')}" target="_blank" class="btn-outline">
+                <i class="fab fa-whatsapp"></i> CONTACT
+              </a>
+            </div>
+
+            <!-- Payment methods inline -->
+            <div style="background:rgba(245,166,35,0.04); border:1px solid var(--border); border-radius:var(--radius2);
+                        padding:14px 16px; font-family:'Exo 2',sans-serif; font-size:12px; color:var(--text3);">
+              <div style="margin-bottom:8px; font-weight:700; color:var(--text2); letter-spacing:1px;">ACCEPTED PAYMENTS</div>
+              <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                <span style="color:var(--gold);"><i class="fas fa-coins"></i> Binance (USDT)</span>
+                <span><i class="fas fa-mobile-alt"></i> EasyPaisa</span>
+                <span><i class="fas fa-mobile-alt"></i> JazzCash</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GALLERY SECTION -->
+    ${galleryHTML}
+
+    <!-- RELATED / BACK SECTION -->
+    <section class="pd-related-section">
+      <div class="container" style="text-align:center;">
+        <div class="section-eyebrow">EXPLORE MORE</div>
+        <div class="section-title">OTHER PLANS</div>
+        <div class="section-line" style="margin:0 auto 24px;"></div>
+        <div id="relatedProducts" style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap; margin-bottom:40px;"></div>
+        <a href="/#subscriptions" class="btn-outline">
+          <i class="fas fa-th-large"></i> VIEW ALL PLANS
+        </a>
+      </div>
+    </section>
+  `;
+
+  // Load related products
+  loadRelated(p.id);
+}
+
+function renderMediaItem(media, isMain) {
+  if (!media) return '';
+  if (media.type === 'video') {
+    // Detect YouTube / external vs uploaded
+    const isYoutube = media.url.includes('youtube.com') || media.url.includes('youtu.be');
+    if (isYoutube) {
+      let embedId = '';
+      const match = media.url.match(/(?:v=|youtu\.be\/)([^&?]+)/);
+      if (match) embedId = match[1];
+      return embedId
+        ? `<iframe src="https://www.youtube.com/embed/${embedId}" style="width:100%;height:100%;border:none;" allowfullscreen></iframe>`
+        : `<video src="${media.url}" controls style="width:100%;height:100%;object-fit:cover;"></video>`;
+    }
+    return `<video src="${media.url}" controls style="width:100%;height:100%;object-fit:cover;"></video>`;
+  }
+  return `<img src="${media.url}" alt="Product" style="width:100%;height:100%;object-fit:cover;"/>`;
+}
+
+// ─── MEDIA SWITCHER ──────────────────────────────────
+function switchMedia(index) {
+  const allMedia = [];
+  if (productData.main_image) allMedia.push({ type: 'image', url: productData.main_image });
+  (productData.gallery || []).forEach(u => allMedia.push({ type: 'image', url: u }));
+  if (productData.video_url) allMedia.push({ type: 'video', url: productData.video_url });
+
+  const media = allMedia[index];
+  if (!media) return;
+
+  document.getElementById('pdMainMedia').innerHTML = renderMediaItem(media, true);
+
+  // Update active thumb
+  document.querySelectorAll('.pd-thumb').forEach((t, i) => {
+    t.classList.toggle('active', i === index);
+  });
+  activeMediaIndex = index;
+}
+
+// ─── LIGHTBOX ────────────────────────────────────────
+function openLightbox(url) {
+  const lb = document.getElementById('lightbox');
+  document.getElementById('lightboxImg').src = url;
+  lb.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ─── RELATED PRODUCTS ────────────────────────────────
+async function loadRelated(currentId) {
+  try {
+    const res = await fetch('/api/products');
+    const products = await res.json();
+    const others = products.filter(p => p.id != currentId).slice(0, 3);
+    const iconMap = { day: 'fa-calendar-day', week: 'fa-calendar-week', month: 'fa-calendar-alt' };
+    document.getElementById('relatedProducts').innerHTML = others.map(p => `
+      <a href="/product/${p.id}"
+         style="background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+                padding:20px; min-width:180px; max-width:220px; flex:1; transition:var(--transition);
+                display:flex; flex-direction:column; align-items:center; gap:10px; text-decoration:none;">
+        ${p.main_image
+          ? `<img src="${p.main_image}" style="width:100%;height:80px;object-fit:cover;border-radius:6px;" alt=""/>`
+          : `<i class="fas ${iconMap[p.icon]||'fa-calendar'}" style="font-size:32px;color:var(--gold);"></i>`
+        }
+        <div style="font-family:'Orbitron',sans-serif; font-size:13px; font-weight:700; color:var(--white);">${p.duration || p.name}</div>
+        <div style="font-family:'Exo 2',sans-serif; font-size:13px; color:var(--gold); font-weight:700;">PKR ${Number(p.price_pkr).toLocaleString()}</div>
+      </a>
+    `).join('');
+  } catch(e) {}
+}
+
+// ─── ORDER MODAL ────────────────────────────────────
+function openOrderModal(productId, productName, pricePkr, priceUsdt) {
+  document.getElementById('orderProductId').value = productId;
+  document.getElementById('modalProductInfo').innerHTML =
+    `<div>${productName} — <strong>PKR ${Number(pricePkr).toLocaleString()}</strong> / <strong>$${priceUsdt} USDT</strong></div>`;
+  ['orderName','orderContact','orderPubgId','orderNotes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('orderPayment').value = '';
+  document.getElementById('orderModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeOrderModal() {
+  document.getElementById('orderModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+async function submitOrder() {
+  const product_id      = document.getElementById('orderProductId').value;
+  const customer_name   = document.getElementById('orderName').value.trim();
+  const customer_contact= document.getElementById('orderContact').value.trim();
+  const pubg_id         = document.getElementById('orderPubgId').value.trim();
+  const payment_method  = document.getElementById('orderPayment').value;
+  const notes           = document.getElementById('orderNotes').value.trim();
+  if (!customer_name || !customer_contact || !pubg_id || !payment_method) {
+    showToast('Please fill all required fields!', 'error'); return;
+  }
+  const btn = document.querySelector('#orderModal .full-btn');
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+  btn.disabled = true;
+  try {
+    const res = await fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ product_id, customer_name, customer_contact, pubg_id, payment_method, notes })
+    });
+    const data = await res.json();
+    if (data.success) {
+      closeOrderModal();
+      document.getElementById('orderIdDisplay').textContent = data.order_id;
+      const msg = `Team ESP Order\nOrder ID: ${data.order_id}\nPUBG ID: ${pubg_id}\nPayment: ${payment_method}`;
+      const wn = (settings.whatsapp||'').replace(/[^0-9]/g,'');
+      const tn = (settings.telegram||'').replace('@','');
+      document.getElementById('successWhatsapp').href = `https://wa.me/${wn}?text=${encodeURIComponent(msg)}`;
+      document.getElementById('successTelegram').href = `https://t.me/${tn}`;
+      document.getElementById('successModal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    } else {
+      showToast(data.error || 'Order failed.', 'error');
+      btn.innerHTML = orig; btn.disabled = false;
+    }
+  } catch(e) {
+    showToast('Connection error.', 'error');
+    btn.innerHTML = orig; btn.disabled = false;
+  }
+}
+function closeSuccessModal() {
+  document.getElementById('successModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if(e.target===o){ o.classList.remove('open'); document.body.style.overflow=''; } });
+});
+
+// ─── TOAST ──────────────────────────────────────────
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = `toast show ${type}`;
+  clearTimeout(window._tt);
+  window._tt = setTimeout(()=>t.classList.remove('show'), 3500);
+}
+
+// ESC closes lightbox
+document.addEventListener('keydown', e => { if(e.key==='Escape') { closeLightbox(); closeOrderModal(); closeSuccessModal(); } });
+
+// Init
+init();
+</script>
+</body>
+</html>
