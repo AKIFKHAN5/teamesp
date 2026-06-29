@@ -238,12 +238,24 @@ label{font-size:11px;font-weight:700;letter-spacing:0.5px;color:var(--text2);tex
         <i class="fas fa-shopping-cart"></i> Orders
         <span class="sb-badge" id="badge-orders">0</span>
       </a>
+      <a href="#" onclick="showPage('coupons',this)">
+        <i class="fas fa-tag"></i> Coupons
+      </a>
+      <a href="#" onclick="showPage('announcement',this)">
+        <i class="fas fa-bullhorn"></i> Announcement
+      </a>
+      <a href="#" onclick="showPage('maintenance',this)">
+        <i class="fas fa-tools"></i> Maintenance
+      </a>
       <a href="#" onclick="showPage('reviews',this)">
         <i class="fas fa-star"></i> Reviews
         <span class="sb-badge" id="badge-reviews">0</span>
       </a>
       <a href="#" onclick="showPage('faq',this)">
         <i class="fas fa-question-circle"></i> FAQ
+      </a>
+      <a href="#" onclick="showPage('appearance',this)">
+        <i class="fas fa-palette"></i> Appearance
       </a>
       <a href="#" onclick="showPage('settings',this)">
         <i class="fas fa-cog"></i> Settings
@@ -336,6 +348,13 @@ label{font-size:11px;font-weight:700;letter-spacing:0.5px;color:var(--text2);tex
             <button class="btn-save" onclick="saveProduct()"><i class="fas fa-save"></i> <span id="productSaveBtn">Add Product</span></button>
             <button class="btn-cancel" onclick="resetProductForm()"><i class="fas fa-times"></i> Cancel</button>
           </div>
+        </div>
+
+        <!-- TIER DESCRIPTIONS MANAGER -->
+        <div class="form-section" style="background:linear-gradient(135deg,rgba(245,166,35,0.05),rgba(245,166,35,0.02));border:1px solid var(--border2);">
+          <h3><i class="fas fa-list-alt"></i> Subscription Tier Details</h3>
+          <p style="color:var(--text2);font-size:13px;margin-bottom:18px;">Edit the price and description for each subscription duration shown on the product card.</p>
+          <div id="tiersEditor"></div>
         </div>
 
         <!-- MEDIA MANAGER (shown only when editing) -->
@@ -475,6 +494,183 @@ label{font-size:11px;font-weight:700;letter-spacing:0.5px;color:var(--text2);tex
         </div>
       </div>
 
+      <!-- COUPONS PAGE -->
+      <div class="page-section" id="page-coupons">
+        <div class="form-section">
+          <h3><i class="fas fa-tag"></i> <span id="couponFormTitle">Create New Coupon</span></h3>
+          <div class="form-grid">
+            <div class="fg"><label>Coupon Code *</label><input id="c-code" placeholder="WELCOME10" style="text-transform:uppercase;letter-spacing:1px;"/></div>
+            <div class="fg"><label>Description</label><input id="c-desc" placeholder="10% off for new customers"/></div>
+            <div class="fg">
+              <label>Discount Type *</label>
+              <select id="c-type" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:11px 14px;font-size:13px;color:var(--text);">
+                <option value="percent">Percentage (%)</option>
+                <option value="fixed">Fixed Amount (PKR)</option>
+              </select>
+            </div>
+            <div class="fg"><label>Discount Value *</label><input id="c-value" type="number" placeholder="10" min="0"/></div>
+            <div class="fg"><label>Minimum Order (PKR)</label><input id="c-min" type="number" placeholder="0" min="0"/></div>
+            <div class="fg"><label>Usage Limit</label><input id="c-limit" type="number" placeholder="100" min="1"/></div>
+            <div class="fg"><label>Expiry Date</label><input id="c-expiry" type="date"/></div>
+            <div class="fg">
+              <label>Status</label>
+              <select id="c-active" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:11px 14px;font-size:13px;color:var(--text);">
+                <option value="true">Active</option>
+                <option value="false">Inactive</option>
+              </select>
+            </div>
+          </div>
+          <input type="hidden" id="c-edit-id"/>
+          <div class="form-actions">
+            <button class="btn-save" onclick="saveCoupon()"><i class="fas fa-save"></i> <span id="couponSaveBtn">Add Coupon</span></button>
+            <button class="btn-cancel" onclick="resetCouponForm()"><i class="fas fa-times"></i> Cancel</button>
+          </div>
+        </div>
+        <div class="card-box">
+          <div class="card-box-header"><h3><i class="fas fa-list"></i> All Coupons</h3></div>
+          <table>
+            <thead><tr><th>Code</th><th>Type</th><th>Value</th><th>Min Order</th><th>Usage</th><th>Expiry</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="couponsTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ANNOUNCEMENT PAGE -->
+      <div class="page-section" id="page-announcement">
+        <div class="form-section">
+          <h3><i class="fas fa-bullhorn"></i> Announcement Bar</h3>
+          <p style="color:var(--text2);font-size:13px;margin-bottom:18px;">Display a notice bar at the top of your website. Great for promotions, holiday hours, or important updates.</p>
+          <div class="form-grid">
+            <div class="fg span2">
+              <label>Status</label>
+              <label style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;cursor:pointer;">
+                <input type="checkbox" id="a-enabled" style="width:18px;height:18px;accent-color:var(--gold);"/>
+                <span style="font-size:13px;font-weight:700;">Show announcement bar to visitors</span>
+              </label>
+            </div>
+            <div class="fg span2"><label>Message *</label><textarea id="a-message" rows="2" placeholder="🎉 Special Offer: Get 10% OFF with code WELCOME10 — Limited Time!"></textarea></div>
+            <div class="fg">
+              <label>Style / Color</label>
+              <select id="a-type" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:11px 14px;font-size:13px;color:var(--text);">
+                <option value="info">Info (Gold)</option>
+                <option value="success">Success (Green)</option>
+                <option value="warning">Warning (Orange)</option>
+                <option value="sale">Sale (Red)</option>
+              </select>
+            </div>
+            <div class="fg">
+              <label>Allow Close Button</label>
+              <select id="a-close" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:11px 14px;font-size:13px;color:var(--text);">
+                <option value="true">Yes — visitor can dismiss</option>
+                <option value="false">No — always show</option>
+              </select>
+            </div>
+            <div class="fg"><label>Link URL (optional)</label><input id="a-link" placeholder="https://..."/></div>
+            <div class="fg"><label>Link Text (optional)</label><input id="a-link-text" placeholder="Shop Now"/></div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-save" onclick="saveAnnouncement()"><i class="fas fa-save"></i> Save Announcement</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAINTENANCE PAGE -->
+      <div class="page-section" id="page-maintenance">
+        <div class="form-section">
+          <h3><i class="fas fa-tools"></i> Maintenance Mode</h3>
+          <p style="color:var(--text2);font-size:13px;margin-bottom:18px;">When enabled, visitors will see a maintenance page. The admin panel will still be accessible for you.</p>
+          <div class="form-grid">
+            <div class="fg span2">
+              <label>Maintenance Mode</label>
+              <label style="display:flex;align-items:center;gap:10px;padding:13px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;cursor:pointer;" id="maintToggle">
+                <input type="checkbox" id="m-enabled" style="width:20px;height:20px;accent-color:var(--red);"/>
+                <span style="font-size:14px;font-weight:700;color:var(--text);">⚠️ Enable maintenance mode (website will be offline for visitors)</span>
+              </label>
+            </div>
+            <div class="fg span2"><label>Page Title</label><input id="m-title" placeholder="We'll Be Right Back!"/></div>
+            <div class="fg span2"><label>Message</label><textarea id="m-message" rows="3" placeholder="Our website is undergoing scheduled maintenance..."></textarea></div>
+            <div class="fg"><label>Estimated Time</label><input id="m-time" placeholder="1 hour"/></div>
+          </div>
+          <div style="background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.2);border-radius:8px;padding:14px;margin-top:14px;font-size:13px;color:var(--text2);">
+            <i class="fas fa-info-circle" style="color:var(--gold);"></i>
+            <strong>Note:</strong> Even when maintenance mode is ON, you can still access <code>/admin</code> to manage your site. Customers will be redirected to the maintenance page.
+          </div>
+          <div class="form-actions">
+            <button class="btn-save" onclick="saveMaintenance()"><i class="fas fa-save"></i> Save Maintenance Settings</button>
+            <a href="/maintenance" target="_blank" class="btn-cancel" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;"><i class="fas fa-eye"></i> Preview Page</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- APPEARANCE PAGE -->
+      <div class="page-section" id="page-appearance">
+        <div class="form-section">
+          <h3><i class="fas fa-image"></i> Logo &amp; Favicon</h3>
+          <p style="color:var(--text2);font-size:13px;margin-bottom:18px;">Upload your custom logo and favicon. They'll automatically replace the default icons across the website.</p>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+            <!-- LOGO -->
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:18px;">
+              <h4 style="font-size:13px;font-weight:800;color:var(--gold);margin-bottom:12px;letter-spacing:1px;">SITE LOGO</h4>
+              <div style="background:var(--bg);border:1px dashed var(--border2);border-radius:8px;padding:24px;text-align:center;margin-bottom:12px;min-height:120px;display:flex;align-items:center;justify-content:center;" id="logoPreview">
+                <span style="color:var(--text3);font-size:12px;">No logo uploaded</span>
+              </div>
+              <label for="logo-file" style="display:block;padding:10px 14px;background:linear-gradient(135deg,var(--gold-d),var(--gold));color:#000;font-size:12px;font-weight:800;border-radius:7px;text-align:center;cursor:pointer;letter-spacing:1px;">
+                <i class="fas fa-upload"></i> UPLOAD LOGO (PNG/SVG/JPG)
+              </label>
+              <input type="file" id="logo-file" accept="image/*" style="display:none;" onchange="uploadLogo(this,'logo')"/>
+              <button class="btn-cancel" style="width:100%;margin-top:8px;padding:8px;font-size:11px;" onclick="removeLogo('logo')">Remove Logo</button>
+            </div>
+
+            <!-- FAVICON -->
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:18px;">
+              <h4 style="font-size:13px;font-weight:800;color:var(--gold);margin-bottom:12px;letter-spacing:1px;">FAVICON (Browser Tab Icon)</h4>
+              <div style="background:var(--bg);border:1px dashed var(--border2);border-radius:8px;padding:24px;text-align:center;margin-bottom:12px;min-height:120px;display:flex;align-items:center;justify-content:center;" id="faviconPreview">
+                <span style="color:var(--text3);font-size:12px;">No favicon uploaded</span>
+              </div>
+              <label for="favicon-file" style="display:block;padding:10px 14px;background:linear-gradient(135deg,var(--gold-d),var(--gold));color:#000;font-size:12px;font-weight:800;border-radius:7px;text-align:center;cursor:pointer;letter-spacing:1px;">
+                <i class="fas fa-upload"></i> UPLOAD FAVICON (PNG/ICO)
+              </label>
+              <input type="file" id="favicon-file" accept="image/*,.ico" style="display:none;" onchange="uploadLogo(this,'favicon')"/>
+              <button class="btn-cancel" style="width:100%;margin-top:8px;padding:8px;font-size:11px;" onclick="removeLogo('favicon')">Remove Favicon</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3><i class="fas fa-mountain"></i> Background Image</h3>
+          <p style="color:var(--text2);font-size:13px;margin-bottom:18px;">Upload a custom background image (PUBG screenshots, gaming themes, etc.) to display behind your website content.</p>
+
+          <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:20px;">
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:18px;">
+              <h4 style="font-size:13px;font-weight:800;color:var(--gold);margin-bottom:12px;letter-spacing:1px;">BACKGROUND IMAGE</h4>
+              <div style="background:var(--bg);border:1px dashed var(--border2);border-radius:8px;padding:24px;text-align:center;margin-bottom:12px;min-height:160px;display:flex;align-items:center;justify-content:center;background-size:cover;background-position:center;" id="bgPreview">
+                <span style="color:var(--text3);font-size:12px;">No background uploaded</span>
+              </div>
+              <label for="bg-file" style="display:block;padding:10px 14px;background:linear-gradient(135deg,var(--gold-d),var(--gold));color:#000;font-size:12px;font-weight:800;border-radius:7px;text-align:center;cursor:pointer;letter-spacing:1px;">
+                <i class="fas fa-upload"></i> UPLOAD BACKGROUND IMAGE
+              </label>
+              <input type="file" id="bg-file" accept="image/*" style="display:none;" onchange="uploadBackground(this)"/>
+              <div style="margin-top:8px;font-size:11px;color:var(--text3);">Recommended: 1920×1080 or larger, .jpg/.png/.webp</div>
+            </div>
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:18px;">
+              <h4 style="font-size:13px;font-weight:800;color:var(--gold);margin-bottom:12px;letter-spacing:1px;">BACKGROUND SETTINGS</h4>
+              <label style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--bg);border:1px solid var(--border);border-radius:6px;cursor:pointer;margin-bottom:14px;">
+                <input type="checkbox" id="bg-enabled" style="width:18px;height:18px;accent-color:var(--gold);"/>
+                <span style="font-size:13px;font-weight:700;">Enable background image</span>
+              </label>
+              <div style="margin-bottom:14px;">
+                <label style="display:block;font-size:11px;font-weight:700;letter-spacing:1px;color:var(--text2);text-transform:uppercase;margin-bottom:7px;">Opacity: <span id="bg-opacity-display">15%</span></label>
+                <input type="range" id="bg-opacity" min="0.05" max="0.5" step="0.05" value="0.15" style="width:100%;" oninput="document.getElementById('bg-opacity-display').textContent=Math.round(this.value*100)+'%'"/>
+                <div style="font-size:11px;color:var(--text3);margin-top:6px;">Lower = subtle, Higher = bold</div>
+              </div>
+              <button class="btn-save" style="width:100%;" onclick="saveBackgroundSettings()"><i class="fas fa-save"></i> Save Settings</button>
+              <button class="btn-cancel" style="width:100%;margin-top:8px;padding:8px;font-size:11px;" onclick="removeLogo('background')">Remove Background</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- SETTINGS -->
       <div class="page-section" id="page-settings">
         <div class="form-section">
@@ -603,11 +799,14 @@ async function api(method, url, body) {
 // ─── NAVIGATION ────────────────────────────
 const pageIcons = {
   dashboard: 'fa-tachometer-alt', products: 'fa-box', orders: 'fa-shopping-cart',
-  reviews: 'fa-star', faq: 'fa-question-circle', settings: 'fa-cog'
+  reviews: 'fa-star', faq: 'fa-question-circle', settings: 'fa-cog',
+  coupons: 'fa-tag', announcement: 'fa-bullhorn', maintenance: 'fa-tools', appearance: 'fa-palette'
 };
 const pageTitles = {
   dashboard: 'Dashboard', products: 'Products', orders: 'Orders',
-  reviews: 'Reviews', faq: 'FAQ', settings: 'Settings'
+  reviews: 'Reviews', faq: 'FAQ', settings: 'Settings',
+  coupons: 'Coupons & Discounts', announcement: 'Announcement Bar',
+  maintenance: 'Maintenance Mode', appearance: 'Appearance & Branding'
 };
 
 function showPage(page, el) {
@@ -617,7 +816,12 @@ function showPage(page, el) {
   if (el) el.classList.add('active');
   document.getElementById('topbarIcon').className = `fas ${pageIcons[page]}`;
   document.getElementById('topbarTitle').textContent = pageTitles[page];
-  const loaders = { products: loadProducts, orders: loadOrders, reviews: loadReviews, faq: loadFaq, settings: loadSettings };
+  const loaders = {
+    products: loadProducts, orders: loadOrders, reviews: loadReviews,
+    faq: loadFaq, settings: loadSettings,
+    coupons: loadCoupons, announcement: loadAnnouncement,
+    maintenance: loadMaintenance, appearance: loadAppearance
+  };
   if (loaders[page]) loaders[page]();
   return false;
 }
@@ -662,9 +866,60 @@ async function loadDashboard() {
 async function loadProducts() {
   try {
     const data = await api('GET', '/api/admin/dashboard');
-    allProducts = data.products || [];
+    // Handle both old products array and new single product
+    if (data.product) {
+      allProducts = data.product.tiers ? data.product.tiers.map(t => ({
+        id: t.id, name: data.product.name, duration: t.label,
+        icon: t.id, price_pkr: t.price_pkr, price_usdt: t.price_usdt,
+        badge: t.badge, active: data.product.active, description: t.description,
+        main_image: data.product.main_image
+      })) : [];
+      renderTiersEditor(data.product);
+    } else {
+      allProducts = data.products || [];
+    }
     renderProductsTable();
-  } catch(e) {}
+  } catch(e) { console.error('loadProducts',e); }
+}
+
+function renderTiersEditor(product) {
+  const wrap = document.getElementById('tiersEditor');
+  if (!wrap || !product || !product.tiers) return;
+  wrap.innerHTML = product.tiers.map(t => `
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:36px;height:36px;background:linear-gradient(135deg,var(--gold-d),var(--gold));border-radius:8px;display:flex;align-items:center;justify-content:center;color:#000;font-weight:900;font-size:14px;">${t.label.charAt(0)}</div>
+          <div>
+            <div style="font-family:'Orbitron',sans-serif;font-size:15px;font-weight:800;color:#fff;">${t.label} Subscription</div>
+            <div style="font-size:11px;color:var(--text3);letter-spacing:1px;">TIER ID: ${t.id}</div>
+          </div>
+        </div>
+        ${t.badge ? `<span class="status-badge status-completed">${t.badge}</span>` : ''}
+      </div>
+      <div class="form-grid">
+        <div class="fg"><label>Price (PKR)</label><input type="number" id="tier-${t.id}-pkr" value="${t.price_pkr}"/></div>
+        <div class="fg"><label>Price (USDT)</label><input type="number" step="0.01" id="tier-${t.id}-usdt" value="${t.price_usdt}"/></div>
+        <div class="fg span2"><label>Description (shown on product card)</label><textarea id="tier-${t.id}-desc" rows="2" placeholder="What's included in this tier...">${t.description || ''}</textarea></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button class="btn-save" style="flex:0 0 auto;padding:9px 18px;font-size:12px;" onclick="saveTier('${t.id}')"><i class="fas fa-save"></i> Save ${t.label}</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function saveTier(tierId) {
+  const body = {
+    price_pkr: parseFloat(document.getElementById(`tier-${tierId}-pkr`).value) || 0,
+    price_usdt: parseFloat(document.getElementById(`tier-${tierId}-usdt`).value) || 0,
+    description: document.getElementById(`tier-${tierId}-desc`).value.trim()
+  };
+  try {
+    await api('PUT', `/api/admin/product/tier/${tierId}`, body);
+    toast(`${tierId.charAt(0).toUpperCase()+tierId.slice(1)} tier updated!`, 'success');
+    loadProducts();
+  } catch(e) { toast('Failed to update tier', 'error'); }
 }
 
 function renderProductsTable() {
@@ -1214,11 +1469,11 @@ async function executeDelete() {
   closeConfirm();
   if (!pendingDelete) return;
   const { type, id } = pendingDelete;
-  const urlMap = { product: `/api/admin/products/${id}`, order: `/api/admin/orders/${id}`, review: `/api/admin/reviews/${id}`, faq: `/api/admin/faq/${id}` };
+  const urlMap = { product: `/api/admin/products/${id}`, order: `/api/admin/orders/${id}`, review: `/api/admin/reviews/${id}`, faq: `/api/admin/faq/${id}`, coupon: `/api/admin/coupons/${id}` };
   try {
     await api('DELETE', urlMap[type]);
     toast('Deleted successfully!', 'success');
-    const reloadMap = { product: loadProducts, order: loadOrders, review: loadReviews, faq: loadFaq };
+    const reloadMap = { product: loadProducts, order: loadOrders, review: loadReviews, faq: loadFaq, coupon: loadCoupons };
     if (reloadMap[type]) reloadMap[type]();
     loadDashboard();
   } catch(e) { toast('Failed to delete', 'error'); }
@@ -1233,10 +1488,251 @@ function toast(msg, type = 'success') {
   window._at = setTimeout(() => t.className = '', 3500);
 }
 
-// Keyboard: Enter for login
+// ═══ COUPONS ═══════════════════════════════
+let allCoupons = [];
+
+async function loadCoupons() {
+  try {
+    allCoupons = await api('GET', '/api/admin/coupons');
+    renderCouponsTable();
+  } catch(e) {}
+}
+
+function renderCouponsTable() {
+  const body = document.getElementById('couponsTable');
+  if (!allCoupons.length) {
+    body.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:30px;">No coupons yet. Create your first coupon above!</td></tr>';
+    return;
+  }
+  body.innerHTML = allCoupons.map(c => {
+    const expired = c.expiry && new Date(c.expiry) < new Date();
+    const exhausted = c.used >= c.usage_limit;
+    return `<tr>
+      <td><strong style="color:var(--gold);font-family:'Orbitron',sans-serif;letter-spacing:1px;">${c.code}</strong>${c.description?`<br><small style="color:var(--text3);font-size:11px;">${c.description}</small>`:''}</td>
+      <td>${c.type === 'percent' ? '<i class="fas fa-percent" style="color:var(--orange);"></i> Percent' : '<i class="fas fa-coins" style="color:var(--green);"></i> Fixed'}</td>
+      <td><strong>${c.type === 'percent' ? c.value+'%' : 'PKR '+Number(c.value).toLocaleString()}</strong></td>
+      <td>${c.min_order ? 'PKR '+Number(c.min_order).toLocaleString() : '—'}</td>
+      <td>${c.used} / ${c.usage_limit}</td>
+      <td style="font-size:12px;">${c.expiry ? new Date(c.expiry).toLocaleDateString() : '—'}${expired?'<br><span class="status-badge status-cancelled">EXPIRED</span>':''}</td>
+      <td>${c.active && !expired && !exhausted ? '<span class="status-badge status-completed">Active</span>' : '<span class="status-badge status-cancelled">Inactive</span>'}</td>
+      <td>
+        <div class="action-btns">
+          <button class="action-btn btn-edit" onclick="editCoupon(${c.id})"><i class="fas fa-edit"></i></button>
+          <button class="action-btn btn-del" onclick="confirmDelete('coupon',${c.id},'Delete coupon ${c.code}?')"><i class="fas fa-trash"></i></button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function saveCoupon() {
+  const code = document.getElementById('c-code').value.trim();
+  const value = parseFloat(document.getElementById('c-value').value);
+  if (!code || !value) { toast('Code and value are required', 'error'); return; }
+  const body = {
+    code,
+    description: document.getElementById('c-desc').value.trim(),
+    type: document.getElementById('c-type').value,
+    value,
+    min_order: parseFloat(document.getElementById('c-min').value) || 0,
+    usage_limit: parseInt(document.getElementById('c-limit').value) || 100,
+    expiry: document.getElementById('c-expiry').value,
+    active: document.getElementById('c-active').value === 'true'
+  };
+  const editId = document.getElementById('c-edit-id').value;
+  try {
+    if (editId) await api('PUT', `/api/admin/coupons/${editId}`, body);
+    else await api('POST', '/api/admin/coupons', body);
+    toast(`Coupon ${editId?'updated':'created'} successfully!`, 'success');
+    resetCouponForm();
+    loadCoupons();
+  } catch(e) { toast('Failed to save coupon', 'error'); }
+}
+
+function editCoupon(id) {
+  const c = allCoupons.find(x => x.id == id);
+  if (!c) return;
+  document.getElementById('c-edit-id').value = c.id;
+  document.getElementById('c-code').value = c.code;
+  document.getElementById('c-desc').value = c.description || '';
+  document.getElementById('c-type').value = c.type;
+  document.getElementById('c-value').value = c.value;
+  document.getElementById('c-min').value = c.min_order || '';
+  document.getElementById('c-limit').value = c.usage_limit;
+  document.getElementById('c-expiry').value = c.expiry || '';
+  document.getElementById('c-active').value = c.active ? 'true' : 'false';
+  document.getElementById('couponFormTitle').textContent = 'Edit Coupon';
+  document.getElementById('couponSaveBtn').textContent = 'Update Coupon';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function resetCouponForm() {
+  document.getElementById('c-edit-id').value = '';
+  ['c-code','c-desc','c-value','c-min','c-expiry'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('c-type').value = 'percent';
+  document.getElementById('c-limit').value = '100';
+  document.getElementById('c-active').value = 'true';
+  document.getElementById('couponFormTitle').textContent = 'Create New Coupon';
+  document.getElementById('couponSaveBtn').textContent = 'Add Coupon';
+}
+
+async function deleteCoupon(id) {
+  try { await api('DELETE', `/api/admin/coupons/${id}`); toast('Coupon deleted', 'success'); loadCoupons(); }
+  catch(e) { toast('Failed to delete', 'error'); }
+}
+
+// ═══ ANNOUNCEMENT ═══════════════════════════
+async function loadAnnouncement() {
+  try {
+    const data = await api('GET', '/api/admin/dashboard');
+    const a = data.announcement || {};
+    document.getElementById('a-enabled').checked = !!a.enabled;
+    document.getElementById('a-message').value = a.message || '';
+    document.getElementById('a-type').value = a.type || 'info';
+    document.getElementById('a-close').value = a.show_close === false ? 'false' : 'true';
+    document.getElementById('a-link').value = a.link || '';
+    document.getElementById('a-link-text').value = a.link_text || '';
+  } catch(e) {}
+}
+
+async function saveAnnouncement() {
+  const body = {
+    enabled: document.getElementById('a-enabled').checked,
+    message: document.getElementById('a-message').value.trim(),
+    type: document.getElementById('a-type').value,
+    show_close: document.getElementById('a-close').value === 'true',
+    link: document.getElementById('a-link').value.trim(),
+    link_text: document.getElementById('a-link-text').value.trim()
+  };
+  if (body.enabled && !body.message) { toast('Message is required', 'error'); return; }
+  try { await api('PUT', '/api/admin/announcement', body); toast('Announcement saved!', 'success'); }
+  catch(e) { toast('Failed to save', 'error'); }
+}
+
+// ═══ MAINTENANCE ═════════════════════════════
+async function loadMaintenance() {
+  try {
+    const data = await api('GET', '/api/admin/dashboard');
+    const m = data.maintenance || {};
+    document.getElementById('m-enabled').checked = !!m.enabled;
+    document.getElementById('m-title').value = m.title || "We'll Be Right Back!";
+    document.getElementById('m-message').value = m.message || '';
+    document.getElementById('m-time').value = m.estimated_time || '1 hour';
+  } catch(e) {}
+}
+
+async function saveMaintenance() {
+  const enabled = document.getElementById('m-enabled').checked;
+  if (enabled && !confirm('⚠️ Are you sure? Your website will be OFFLINE for visitors. Only /admin will be accessible.')) {
+    document.getElementById('m-enabled').checked = false;
+    return;
+  }
+  const body = {
+    enabled,
+    title: document.getElementById('m-title').value.trim(),
+    message: document.getElementById('m-message').value.trim(),
+    estimated_time: document.getElementById('m-time').value.trim()
+  };
+  try {
+    await api('PUT', '/api/admin/maintenance', body);
+    toast(enabled ? '🛠️ Maintenance mode ON' : '✅ Maintenance mode OFF', 'success');
+  } catch(e) { toast('Failed to save', 'error'); }
+}
+
+// ═══ APPEARANCE / LOGO / BACKGROUND ═════════
+async function loadAppearance() {
+  try {
+    const data = await api('GET', '/api/admin/dashboard');
+    const s = data.settings || {};
+    // Logo preview
+    const logoP = document.getElementById('logoPreview');
+    if (s.logo_url) logoP.innerHTML = `<img src="${s.logo_url}" style="max-width:120px;max-height:80px;object-fit:contain;">`;
+    else logoP.innerHTML = '<span style="color:var(--text3);font-size:12px;">No logo uploaded</span>';
+    // Favicon preview
+    const favP = document.getElementById('faviconPreview');
+    if (s.favicon_url) favP.innerHTML = `<img src="${s.favicon_url}" style="max-width:48px;max-height:48px;object-fit:contain;">`;
+    else favP.innerHTML = '<span style="color:var(--text3);font-size:12px;">No favicon uploaded</span>';
+    // Background preview
+    const bgP = document.getElementById('bgPreview');
+    if (s.background_url) bgP.style.backgroundImage = `url('${s.background_url}')`;
+    else { bgP.style.backgroundImage = 'none'; bgP.innerHTML = '<span style="color:var(--text3);font-size:12px;">No background uploaded</span>'; }
+    document.getElementById('bg-enabled').checked = !!s.background_enabled;
+    const opacity = s.background_opacity || 0.15;
+    document.getElementById('bg-opacity').value = opacity;
+    document.getElementById('bg-opacity-display').textContent = Math.round(opacity*100)+'%';
+  } catch(e) {}
+}
+
+async function uploadLogo(input, type) {
+  if (!input.files.length) return;
+  const fd = new FormData();
+  fd.append('file', input.files[0]);
+  try {
+    const res = await fetch(`/api/admin/upload/${type}`, {
+      method:'POST',
+      headers:{ 'Authorization': `Bearer ${token}` },
+      body: fd
+    });
+    const d = await res.json();
+    if (d.success) {
+      toast(`${type === 'logo' ? 'Logo' : type === 'favicon' ? 'Favicon' : 'Background'} uploaded!`, 'success');
+      loadAppearance();
+    } else toast(d.error || 'Upload failed', 'error');
+  } catch(e) { toast('Upload failed', 'error'); }
+  input.value = '';
+}
+
+async function uploadBackground(input) {
+  if (!input.files.length) return;
+  const fd = new FormData();
+  fd.append('file', input.files[0]);
+  try {
+    const res = await fetch('/api/admin/upload/background', {
+      method:'POST',
+      headers:{ 'Authorization': `Bearer ${token}` },
+      body: fd
+    });
+    const d = await res.json();
+    if (d.success) {
+      // Auto-enable when uploading
+      document.getElementById('bg-enabled').checked = true;
+      await api('PUT', '/api/admin/settings', { background_url: d.url, background_enabled: true });
+      toast('Background uploaded & enabled!', 'success');
+      loadAppearance();
+    } else toast(d.error || 'Upload failed', 'error');
+  } catch(e) { toast('Upload failed', 'error'); }
+  input.value = '';
+}
+
+async function removeLogo(type) {
+  if (!confirm(`Remove the current ${type}?`)) return;
+  const key = type === 'logo' ? 'logo_url' : type === 'favicon' ? 'favicon_url' : 'background_url';
+  const body = { [key]: '' };
+  if (type === 'background') body.background_enabled = false;
+  try {
+    await api('PUT', '/api/admin/settings', body);
+    toast(`${type} removed`, 'success');
+    loadAppearance();
+  } catch(e) { toast('Failed to remove', 'error'); }
+}
+
+async function saveBackgroundSettings() {
+  const body = {
+    background_enabled: document.getElementById('bg-enabled').checked,
+    background_opacity: parseFloat(document.getElementById('bg-opacity').value)
+  };
+  try { await api('PUT', '/api/admin/settings', body); toast('Background settings saved!', 'success'); }
+  catch(e) { toast('Failed to save', 'error'); }
+}
+
+// Coupon delete now handled via main confirmDelete urlMap
+
+// Keyboard: Escape closes modals
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') closeConfirm();
 });
 </script>
+
+
 </body>
 </html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Maintenance — Team ESP</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico"/>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Inter',sans-serif;background:#080b12;color:#e8e8e8;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;position:relative;overflow:hidden;}
+    body::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 50%, rgba(245,166,35,0.08) 0%, transparent 70%);z-index:0;}
+    .container{max-width:540px;text-align:center;position:relative;z-index:1;}
+    .logo{width:80px;height:80px;background:linear-gradient(135deg,#d4891a,#f5a623);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:36px;color:#000;margin:0 auto 20px;box-shadow:0 8px 30px rgba(245,166,35,0.4);animation:float 3s ease-in-out infinite;}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+    .brand{font-family:'Orbitron',sans-serif;font-size:24px;font-weight:900;letter-spacing:4px;margin-bottom:50px;color:#fff;}
+    .brand span{color:#f5a623;}
+    .icon-wrap{font-size:90px;color:#f5a623;margin-bottom:30px;animation:spin 6s linear infinite;display:inline-block;}
+    @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+    h1{font-family:'Orbitron',sans-serif;font-size:clamp(28px,5vw,42px);font-weight:900;color:#fff;letter-spacing:2px;margin-bottom:16px;line-height:1.2;}
+    h1 span{color:#f5a623;}
+    .message{font-size:16px;color:#a0a8b8;line-height:1.8;margin-bottom:30px;}
+    .info-box{background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.2);border-radius:12px;padding:20px;margin-bottom:30px;}
+    .info-row{display:flex;align-items:center;justify-content:center;gap:10px;color:#f5a623;font-weight:600;font-size:14px;letter-spacing:1px;}
+    .info-row i{font-size:18px;}
+    .contact-cta{font-size:14px;color:#687080;margin-bottom:20px;}
+    .contact-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:10px;font-family:'Inter',sans-serif;font-size:13px;font-weight:700;letter-spacing:0.5px;transition:all 0.25s;text-decoration:none;}
+    .btn-wa{background:#25d366;color:#fff;}
+    .btn-tg{background:#0088cc;color:#fff;}
+    .btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,0.3);}
+    .dots{display:inline-flex;gap:4px;margin-left:6px;}
+    .dots span{width:5px;height:5px;background:#f5a623;border-radius:50%;animation:bounce 1.4s infinite;}
+    .dots span:nth-child(2){animation-delay:.2s;}
+    .dots span:nth-child(3){animation-delay:.4s;}
+    @keyframes bounce{0%,80%,100%{transform:scale(0.6);opacity:0.5}40%{transform:scale(1);opacity:1}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo" id="logoEl"><i class="fas fa-crosshairs"></i></div>
+    <div class="brand">TEAM <span>ESP</span></div>
+    <div class="icon-wrap"><i class="fas fa-cog"></i></div>
+    <h1 id="titleEl">We'll Be Right <span>Back!</span></h1>
+    <p class="message" id="messageEl">Our website is undergoing scheduled maintenance. We'll be back online shortly. Thank you for your patience!</p>
+    <div class="info-box">
+      <div class="info-row">
+        <i class="fas fa-clock"></i>
+        <span>Estimated Time: <strong id="timeEl">1 hour</strong></span>
+        <span class="dots"><span></span><span></span><span></span></span>
+      </div>
+    </div>
+    <p class="contact-cta">Need urgent help? Contact us directly:</p>
+    <div class="contact-btns">
+      <a href="#" id="waBtn" class="btn btn-wa" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+      <a href="#" id="tgBtn" class="btn btn-tg" target="_blank"><i class="fab fa-telegram"></i> Telegram</a>
+    </div>
+  </div>
+<script>
+(async()=>{
+  try {
+    const [m,s] = await Promise.all([fetch('/api/maintenance').then(r=>r.json()),fetch('/api/settings').then(r=>r.json())]);
+    if (m.title)          document.getElementById('titleEl').innerHTML = m.title.replace(/!$/,' <span>!</span>');
+    if (m.message)        document.getElementById('messageEl').textContent = m.message;
+    if (m.estimated_time) document.getElementById('timeEl').textContent = m.estimated_time;
+    if (s.logo_url) {
+      const l = document.getElementById('logoEl');
+      l.innerHTML = `<img src="${s.logo_url}" style="width:100%;height:100%;object-fit:contain;border-radius:14px;">`;
+    }
+    if (s.favicon_url) {
+      const fv = document.querySelector('link[rel="icon"]'); if (fv) fv.href = s.favicon_url;
+    }
+    if (s.whatsapp) document.getElementById('waBtn').href = `https://wa.me/${s.whatsapp.replace(/[^0-9]/g,'')}`;
+    if (s.telegram) document.getElementById('tgBtn').href = `https://t.me/${s.telegram.replace('@','')}`;
+  } catch(e) {}
+})();
+</script>
+</body>
+</html>

@@ -14,6 +14,16 @@
 </head>
 <body>
 
+<!-- ANNOUNCEMENT BAR -->
+<div id="announcementBar" class="announcement-bar" style="display:none">
+  <div class="announcement-inner">
+    <i class="fas fa-bullhorn announcement-icon"></i>
+    <span class="announcement-text" id="announcementText"></span>
+    <a id="announcementLink" href="#" style="display:none" class="announcement-link"></a>
+    <button class="announcement-close" id="announcementClose" onclick="closeAnnouncement()"><i class="fas fa-times"></i></button>
+  </div>
+</div>
+
 <!-- LOADER -->
 <div id="loader">
   <div class="loader-inner">
@@ -389,6 +399,14 @@
     <button class="modal-close" onclick="closeCheckout()"><i class="fas fa-times"></i></button>
     <div class="modal-header"><i class="fas fa-lock"></i><h2>Checkout</h2></div>
     <div class="checkout-order-summary" id="checkoutSummary"></div>
+    <!-- COUPON CODE INPUT -->
+    <div class="coupon-section">
+      <div class="coupon-input-wrap">
+        <input type="text" id="couponInput" placeholder="Enter coupon code (optional)" autocomplete="off"/>
+        <button class="coupon-apply-btn" onclick="applyCoupon()">APPLY</button>
+      </div>
+      <div class="coupon-status" id="couponStatus"></div>
+    </div>
     <div class="modal-form">
       <div class="mf-group"><label>Your Full Name *</label><input type="text" id="orderName" placeholder="e.g. Ahmed Ali"/></div>
       <div class="mf-group"><label>WhatsApp / Telegram *</label><input type="text" id="orderContact" placeholder="e.g. +923001234567"/></div>

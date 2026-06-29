@@ -17,6 +17,7 @@ let wishlist  = JSON.parse(localStorage.getItem('teamesp_wishlist') || '[]');
 let editMode  = false;
 let editToken = localStorage.getItem('teamesp_edit_token') || null;
 let saveTimer = null;
+let appliedCoupon = null;  // {code, discount, type, value}
 
 // ─── THEME ───────────────────────────────────────────
 function initTheme() {
@@ -188,10 +189,10 @@ function doSearch(query) {
 // ─── DATA LOADING ────────────────────────────────────
 async function loadData() {
   try {
-    const [sR,pR,fR,rR,faqR,cR,vR] = await Promise.all([
+    const [sR,pR,fR,rR,faqR,cR,vR,aR] = await Promise.all([
       fetch('/api/settings'), fetch('/api/product'), fetch('/api/features'),
       fetch('/api/reviews'),  fetch('/api/faq'),     fetch('/api/content'),
-      fetch('/api/versions')
+      fetch('/api/versions'), fetch('/api/announcement')
     ]);
     settings     = await sR.json();
     productData  = await pR.json();
@@ -200,9 +201,12 @@ async function loadData() {
     const reviews= await rR.json();
     const faq    = await faqR.json();
     contentMap   = await cR.json();
+    const announcement = await aR.json();
 
     applySettings(settings);
     applyLogo(settings);
+    applyBackground(settings);
+    applyAnnouncement(announcement);
     renderProduct(productData);
     renderFeatures(featuresData);
     renderVersions(versionsData);
@@ -213,6 +217,51 @@ async function loadData() {
     updateWishlistUI();
     if (editToken) toggleEditMode(true, true);
   } catch(e) { console.error('loadData',e); }
+}
+
+function applyBackground(s) {
+  if (!s.background_enabled || !s.background_url) {
+    document.body.classList.remove('has-bg-image');
+    document.body.style.removeProperty('--bg-image');
+    document.body.style.removeProperty('--bg-opacity');
+    return;
+  }
+  document.body.style.setProperty('--bg-image', `url('${s.background_url}')`);
+  document.body.style.setProperty('--bg-opacity', s.background_opacity || 0.15);
+  document.body.classList.add('has-bg-image');
+}
+
+function applyAnnouncement(a) {
+  const bar = document.getElementById('announcementBar');
+  if (!bar) return;
+  // Check if user dismissed this exact message before
+  const dismissed = localStorage.getItem('teamesp_announce_dismissed');
+  if (!a.enabled || !a.message || dismissed === a.message) {
+    bar.style.display = 'none';
+    document.body.classList.remove('has-announcement');
+    return;
+  }
+  document.getElementById('announcementText').textContent = a.message;
+  bar.className = `announcement-bar type-${a.type || 'info'}`;
+  bar.style.display = 'block';
+  document.body.classList.add('has-announcement');
+
+  const link = document.getElementById('announcementLink');
+  if (a.link && a.link_text) {
+    link.href = a.link; link.textContent = a.link_text; link.style.display = 'inline-block';
+  } else { link.style.display = 'none'; }
+
+  const closeBtn = document.getElementById('announcementClose');
+  closeBtn.style.display = a.show_close === false ? 'none' : 'flex';
+  // Store current message so we know what was dismissed
+  bar.dataset.message = a.message;
+}
+
+function closeAnnouncement() {
+  const bar = document.getElementById('announcementBar');
+  localStorage.setItem('teamesp_announce_dismissed', bar.dataset.message || '');
+  bar.style.display = 'none';
+  document.body.classList.remove('has-announcement');
 }
 
 function applyLogo(s) {
@@ -303,6 +352,11 @@ function renderProduct(p) {
           <div class="spc-price-pkr-big" id="spcPkr">PKR ${Number(active.price_pkr).toLocaleString()}</div>
           <div class="spc-price-usdt-line" id="spcUsdt">$${active.price_usdt} USDT</div>
         </div>
+        ${active.description ? `
+        <div class="spc-tier-desc" id="spcTierDesc">
+          <i class="fas fa-info-circle"></i>
+          <span id="spcTierDescText">${active.description}</span>
+        </div>` : '<div class="spc-tier-desc" id="spcTierDesc" style="display:none"><i class="fas fa-info-circle"></i><span id="spcTierDescText"></span></div>'}
         <div class="spc-actions">
           <button class="btn-primary btn-3d spc-addcart" onclick="addToCart()"><i class="fas fa-shopping-cart"></i> ADD TO CART</button>
           <button class="btn-glass spc-buynow" onclick="addToCartAndCheckout()"><i class="fas fa-bolt"></i> BUY NOW</button>
@@ -324,6 +378,19 @@ function selectTier(id) {
   document.getElementById('spcPkr').textContent=`PKR ${Number(tier.price_pkr).toLocaleString()}`;
   document.getElementById('spcUsdt').textContent=`$${tier.price_usdt} USDT`;
   document.getElementById('spcSelectedLabel').innerHTML=`Selected: <strong>${tier.label}</strong>`;
+  // Update tier description with fade animation
+  const descEl = document.getElementById('spcTierDesc');
+  const descText = document.getElementById('spcTierDescText');
+  if (descEl && descText) {
+    if (tier.description) {
+      descEl.classList.add('fade');
+      setTimeout(()=>{
+        descText.textContent = tier.description;
+        descEl.style.display = 'flex';
+        descEl.classList.remove('fade');
+      }, 150);
+    } else { descEl.style.display = 'none'; }
+  }
   const d=document.getElementById('spcPriceDisplay');
   d.classList.remove('price-pulse'); void d.offsetWidth; d.classList.add('price-pulse');
 }
@@ -497,14 +564,61 @@ function openWishlist(){ renderWishlistItems(); document.getElementById('wishlis
 function closeWishlist(){ document.getElementById('wishlistDrawer').classList.remove('open'); document.getElementById('wishlistOverlay').classList.remove('open'); document.body.style.overflow=''; }
 
 // ─── CHECKOUT ────────────────────────────────────────
+function renderCheckoutSummary() {
+  const tot = getCartTotal();
+  const discount = appliedCoupon ? appliedCoupon.discount : 0;
+  const final = tot.pkr - discount;
+  document.getElementById('checkoutSummary').innerHTML = `
+    <div class="checkout-items">
+      ${cart.map(i => `<div class="checkout-item"><span>${i.label} × ${i.qty||1}</span><span>PKR ${Number(i.price_pkr*(i.qty||1)).toLocaleString()}</span></div>`).join('')}
+      ${appliedCoupon ? `<div class="checkout-discount-row"><span><i class="fas fa-tag"></i> ${appliedCoupon.code}</span><span>− PKR ${Number(discount).toLocaleString()}</span></div>` : ''}
+      <div class="checkout-total"><span>Total</span><div><strong>PKR ${Number(final).toLocaleString()}</strong><span> / $${tot.usdt.toFixed(2)} USDT</span></div></div>
+    </div>`;
+}
+
+async function applyCoupon() {
+  const code = document.getElementById('couponInput').value.trim();
+  const status = document.getElementById('couponStatus');
+  if (!code) { status.textContent=''; return; }
+  const tot = getCartTotal();
+  try {
+    const res = await fetch('/api/coupon/validate', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ code, total_pkr: tot.pkr })
+    });
+    const d = await res.json();
+    if (d.success) {
+      appliedCoupon = d;
+      status.className = 'coupon-status success';
+      status.innerHTML = `<i class="fas fa-check-circle"></i> <span class="coupon-applied">${d.code}<button onclick="removeCoupon()"><i class="fas fa-times"></i></button></span> ${d.description ? '— '+d.description : ''}`;
+      renderCheckoutSummary();
+      showToast(`✅ Coupon applied! You saved PKR ${Number(d.discount).toLocaleString()}`);
+    } else {
+      appliedCoupon = null;
+      status.className = 'coupon-status error';
+      status.innerHTML = `<i class="fas fa-times-circle"></i> ${d.error || 'Invalid coupon'}`;
+      renderCheckoutSummary();
+    }
+  } catch(e) {
+    status.className = 'coupon-status error';
+    status.innerHTML = '<i class="fas fa-times-circle"></i> Connection error';
+  }
+}
+
+function removeCoupon() {
+  appliedCoupon = null;
+  document.getElementById('couponInput').value = '';
+  document.getElementById('couponStatus').textContent = '';
+  renderCheckoutSummary();
+  showToast('Coupon removed');
+}
+
 function openCheckout(){
   if(!cart.length){ showToast('Your cart is empty!','error'); return; }
-  const tot=getCartTotal();
-  document.getElementById('checkoutSummary').innerHTML=`
-    <div class="checkout-items">
-      ${cart.map(i=>`<div class="checkout-item"><span>${i.label} × ${i.qty||1}</span><span>PKR ${Number(i.price_pkr*(i.qty||1)).toLocaleString()}</span></div>`).join('')}
-      <div class="checkout-total"><span>Total</span><div><strong>PKR ${Number(tot.pkr).toLocaleString()}</strong><span> / $${tot.usdt.toFixed(2)} USDT</span></div></div>
-    </div>`;
+  appliedCoupon = null;
+  document.getElementById('couponInput').value = '';
+  document.getElementById('couponStatus').textContent = '';
+  renderCheckoutSummary();
   ['orderName','orderContact','orderNotes'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('orderPayment').value='';
   closeCart();
@@ -522,13 +636,16 @@ async function submitOrder(){
   const btn=document.getElementById('placeOrderBtn');
   const orig=btn.innerHTML; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Processing...'; btn.disabled=true;
   try {
-    const res=await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:cart,customer_name,customer_contact,payment_method,notes})});
+    const body = { items:cart, customer_name, customer_contact, payment_method, notes };
+    if (appliedCoupon) body.coupon_code = appliedCoupon.code;
+    const res=await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     const data=await res.json();
     if(data.success){
       closeCheckout();
       document.getElementById('orderIdDisplay').textContent=data.order_id;
       const tot=getCartTotal();
-      const msg=`Team ESP Order\nOrder ID: ${data.order_id}\nTotal: PKR ${Number(tot.pkr).toLocaleString()}\nPayment: ${payment_method}`;
+      const finalTotal = (tot.pkr - (data.discount||0));
+      const msg=`Team ESP Order\nOrder ID: ${data.order_id}\n${data.discount?`Discount: PKR ${data.discount}\n`:''}Total: PKR ${Number(finalTotal).toLocaleString()}\nPayment: ${payment_method}`;
       const wn=(settings.whatsapp||'').replace(/[^0-9]/g,'');
       const tn=(settings.telegram||'').replace('@','');
       document.getElementById('successWhatsapp').href=`https://wa.me/${wn}?text=${encodeURIComponent(msg)}`;
@@ -536,6 +653,7 @@ async function submitOrder(){
       document.getElementById('successModal').classList.add('open');
       document.body.style.overflow='hidden';
       clearCart();
+      appliedCoupon = null;
     } else { showToast(data.error||'Order failed.','error'); btn.innerHTML=orig; btn.disabled=false; }
   } catch{ showToast('Connection error.','error'); btn.innerHTML=orig; btn.disabled=false; }
 }
