@@ -468,7 +468,7 @@ button{cursor:pointer;border:none;outline:none;}
 .chat-input-wrap button{width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,var(--gold-dark),var(--gold));color:#000;font-size:14px;display:flex;align-items:center;justify-content:center;}
 
 /* ─── EDIT MODE ─────────────────────────────── */
-.edit-login-btn{position:fixed;bottom:100px;right:24px;z-index:900;width:44px;height:44px;border-radius:50%;background:rgba(245,166,35,0.15);border:1px solid var(--border2);color:var(--gold);font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:var(--transition);opacity:0.5;}
+.edit-login-btn{position:fixed;bottom:100px;left:24px;z-index:900;width:44px;height:44px;border-radius:50%;background:rgba(245,166,35,0.15);border:1px solid var(--border2);color:var(--gold);font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:var(--transition);opacity:0.5;}
 .edit-login-btn:hover{opacity:1;background:rgba(245,166,35,0.25);box-shadow:var(--shadow-gold);}
 .edit-toolbar{position:fixed;top:0;left:0;right:0;z-index:1100;background:linear-gradient(135deg,#1a1200,#0f0c00);border-bottom:2px solid var(--gold);padding:10px 24px;box-shadow:0 4px 20px rgba(245,166,35,0.3);}
 .edit-toolbar-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px;}
