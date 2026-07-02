@@ -374,6 +374,10 @@ app.delete('/api/admin/faq/:id', auth, (req,res)=>{ const db=readDB(); db.faq=db
 app.get('/admin',      (_,res)=>res.sendFile(path.join(__dirname,'admin','index.html')));
 app.get('/product',    (_,res)=>res.sendFile(path.join(__dirname,'public','product.html')));
 app.get('/maintenance',(_,res)=>res.sendFile(path.join(__dirname,'public','maintenance.html')));
+app.get('/terms',      (_,res)=>res.sendFile(path.join(__dirname,'public','terms.html')));
+app.get('/privacy',    (_,res)=>res.sendFile(path.join(__dirname,'public','privacy.html')));
+app.get('/refund',     (_,res)=>res.sendFile(path.join(__dirname,'public','refund.html')));
+app.get('/disclaimer', (_,res)=>res.sendFile(path.join(__dirname,'public','disclaimer.html')));
 app.get('/{*splat}',   (_,res)=>res.sendFile(path.join(__dirname,'public','index.html')));
 
 const PORT = process.env.PORT||3000;
