@@ -80,7 +80,8 @@ button{cursor:pointer;border:none;outline:none;}
 #loader{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;transition:opacity 0.5s,visibility 0.5s;}
 #loader.hidden{opacity:0;visibility:hidden;}
 .loader-inner{text-align:center;}
-.loader-logo-wrap{margin-bottom:12px;}
+.loader-logo-wrap{margin-bottom:12px;display:flex;align-items:center;justify-content:center;}
+.loader-logo-wrap img{margin:0 auto;}
 .loader-icon{font-size:60px;color:var(--gold);animation:spin 2s linear infinite;display:block;}
 @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 .loader-text{font-family:'Orbitron',sans-serif;font-size:32px;font-weight:900;color:var(--white);letter-spacing:4px;}
