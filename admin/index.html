@@ -611,7 +611,7 @@ label{font-size:11px;font-weight:700;letter-spacing:0.5px;color:var(--text2);tex
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
             <!-- LOGO -->
             <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:18px;">
-              <h4 style="font-size:13px;font-weight:800;color:var(--gold);margin-bottom:12px;letter-spacing:1px;">SITE LOGO</h4>
+              <h4 style="font-size:13px;font-weight:800;color:var(--gold);margin-bottom:12px;letter-spacing:1px;">MAIN SITE LOGO (Navbar &amp; Footer)</h4>
               <div style="background:var(--bg);border:1px dashed var(--border2);border-radius:8px;padding:24px;text-align:center;margin-bottom:12px;min-height:120px;display:flex;align-items:center;justify-content:center;" id="logoPreview">
                 <span style="color:var(--text3);font-size:12px;">No logo uploaded</span>
               </div>
@@ -620,6 +620,18 @@ label{font-size:11px;font-weight:700;letter-spacing:0.5px;color:var(--text2);tex
               </label>
               <input type="file" id="logo-file" accept="image/*" style="display:none;" onchange="uploadLogo(this,'logo')"/>
               <button class="btn-cancel" style="width:100%;margin-top:8px;padding:8px;font-size:11px;" onclick="removeLogo('logo')">Remove Logo</button>
+
+              <!-- LOGO SIZE SLIDER -->
+              <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+                <label style="display:block;font-size:11px;font-weight:700;letter-spacing:1px;color:var(--text2);text-transform:uppercase;margin-bottom:8px;">
+                  Navbar Logo Size: <span id="logo-size-display" style="color:var(--gold);">40px</span>
+                </label>
+                <input type="range" id="logo-size" min="28" max="90" step="2" value="40" style="width:100%;accent-color:var(--gold);" oninput="onLogoSizeChange(this.value)"/>
+                <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:4px;">
+                  <span>Small</span><span>Big</span>
+                </div>
+                <button class="btn-save" style="width:100%;margin-top:10px;padding:8px;font-size:12px;" onclick="saveLogoSize()"><i class="fas fa-save"></i> Save Logo Size</button>
+              </div>
             </div>
 
             <!-- FAVICON -->
@@ -633,6 +645,20 @@ label{font-size:11px;font-weight:700;letter-spacing:0.5px;color:var(--text2);tex
               </label>
               <input type="file" id="favicon-file" accept="image/*,.ico" style="display:none;" onchange="uploadLogo(this,'favicon')"/>
               <button class="btn-cancel" style="width:100%;margin-top:8px;padding:8px;font-size:11px;" onclick="removeLogo('favicon')">Remove Favicon</button>
+
+              <!-- SEPARATE LOADER LOGO -->
+              <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+                <h4 style="font-size:13px;font-weight:800;color:var(--gold);margin-bottom:10px;letter-spacing:1px;">LOADING SCREEN LOGO</h4>
+                <p style="font-size:11px;color:var(--text3);margin-bottom:10px;">Separate logo shown on the loading animation. Leave empty to use main logo.</p>
+                <div style="background:var(--bg);border:1px dashed var(--border2);border-radius:8px;padding:18px;text-align:center;margin-bottom:10px;min-height:80px;display:flex;align-items:center;justify-content:center;" id="loaderLogoPreview">
+                  <span style="color:var(--text3);font-size:12px;">No loader logo</span>
+                </div>
+                <label for="loader-logo-file" style="display:block;padding:9px 14px;background:linear-gradient(135deg,var(--gold-d),var(--gold));color:#000;font-size:12px;font-weight:800;border-radius:7px;text-align:center;cursor:pointer;letter-spacing:1px;">
+                  <i class="fas fa-upload"></i> UPLOAD LOADER LOGO
+                </label>
+                <input type="file" id="loader-logo-file" accept="image/*" style="display:none;" onchange="uploadLogo(this,'loader-logo')"/>
+                <button class="btn-cancel" style="width:100%;margin-top:8px;padding:7px;font-size:11px;" onclick="removeLogo('loader-logo')">Remove Loader Logo</button>
+              </div>
             </div>
           </div>
         </div>
@@ -1652,6 +1678,17 @@ async function loadAppearance() {
     const favP = document.getElementById('faviconPreview');
     if (s.favicon_url) favP.innerHTML = `<img src="${s.favicon_url}" style="max-width:48px;max-height:48px;object-fit:contain;">`;
     else favP.innerHTML = '<span style="color:var(--text3);font-size:12px;">No favicon uploaded</span>';
+    // Loader logo preview
+    const loaderP = document.getElementById('loaderLogoPreview');
+    if (loaderP) {
+      if (s.loader_logo_url) loaderP.innerHTML = `<img src="${s.loader_logo_url}" style="max-width:80px;max-height:60px;object-fit:contain;">`;
+      else loaderP.innerHTML = '<span style="color:var(--text3);font-size:12px;">No loader logo</span>';
+    }
+    // Logo size slider
+    const sizeEl = document.getElementById('logo-size');
+    const sizeDisp = document.getElementById('logo-size-display');
+    if (sizeEl) { sizeEl.value = s.logo_size || 40; }
+    if (sizeDisp) { sizeDisp.textContent = (s.logo_size || 40) + 'px'; }
     // Background preview
     const bgP = document.getElementById('bgPreview');
     if (s.background_url) bgP.style.backgroundImage = `url('${s.background_url}')`;
@@ -1661,6 +1698,18 @@ async function loadAppearance() {
     document.getElementById('bg-opacity').value = opacity;
     document.getElementById('bg-opacity-display').textContent = Math.round(opacity*100)+'%';
   } catch(e) {}
+}
+
+function onLogoSizeChange(val) {
+  document.getElementById('logo-size-display').textContent = val + 'px';
+}
+
+async function saveLogoSize() {
+  const size = parseInt(document.getElementById('logo-size').value) || 40;
+  try {
+    await api('PUT', '/api/admin/settings', { logo_size: size });
+    toast('Logo size saved! Refresh your website to see it.', 'success');
+  } catch(e) { toast('Failed to save logo size', 'error'); }
 }
 
 async function uploadLogo(input, type) {
@@ -1675,7 +1724,8 @@ async function uploadLogo(input, type) {
     });
     const d = await res.json();
     if (d.success) {
-      toast(`${type === 'logo' ? 'Logo' : type === 'favicon' ? 'Favicon' : 'Background'} uploaded!`, 'success');
+      const names = { 'logo':'Logo', 'favicon':'Favicon', 'loader-logo':'Loader logo', 'background':'Background' };
+      toast(`${names[type] || 'File'} uploaded!`, 'success');
       loadAppearance();
     } else toast(d.error || 'Upload failed', 'error');
   } catch(e) { toast('Upload failed', 'error'); }
@@ -1705,13 +1755,14 @@ async function uploadBackground(input) {
 }
 
 async function removeLogo(type) {
-  if (!confirm(`Remove the current ${type}?`)) return;
-  const key = type === 'logo' ? 'logo_url' : type === 'favicon' ? 'favicon_url' : 'background_url';
+  if (!confirm(`Remove the current ${type.replace('-',' ')}?`)) return;
+  const keyMap = { 'logo':'logo_url', 'favicon':'favicon_url', 'loader-logo':'loader_logo_url', 'background':'background_url' };
+  const key = keyMap[type];
   const body = { [key]: '' };
   if (type === 'background') body.background_enabled = false;
   try {
     await api('PUT', '/api/admin/settings', body);
-    toast(`${type} removed`, 'success');
+    toast(`${type.replace('-',' ')} removed`, 'success');
     loadAppearance();
   } catch(e) { toast('Failed to remove', 'error'); }
 }

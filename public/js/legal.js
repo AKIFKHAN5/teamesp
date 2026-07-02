@@ -27,13 +27,17 @@ async function loadLegalData() {
 }
 
 function applyBranding(s) {
+  const logoSize = s.logo_size || 40;
   if (s.logo_url) {
     const ni = document.getElementById('navLogoIcon');
     const nm = document.getElementById('navLogoImg');
-    if (ni && nm) { ni.style.display='none'; nm.src=s.logo_url; nm.style.display='block'; }
+    if (ni && nm) { ni.style.display='none'; nm.src=s.logo_url; nm.style.display='block'; nm.style.height=logoSize+'px'; }
     const fi = document.getElementById('footerLogoIcon');
     const fm = document.getElementById('footerLogoImg');
     if (fi && fm) { fi.style.display='none'; fm.src=s.logo_url; fm.style.display='block'; }
+  } else {
+    const ni = document.getElementById('navLogoIcon');
+    if (ni) { ni.style.width=logoSize+'px'; ni.style.height=logoSize+'px'; ni.style.fontSize=(logoSize*0.44)+'px'; }
   }
   if (s.favicon_url) {
     const fv = document.getElementById('faviconEl');

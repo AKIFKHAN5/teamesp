@@ -247,6 +247,11 @@ app.post('/api/admin/upload/favicon',    auth, upload.single('file'), (req,res)=
   const db=readDB(); const url=`/uploads/${req.file.filename}`;
   db.settings.favicon_url=url; writeDB(db); res.json({success:true,url});
 });
+app.post('/api/admin/upload/loader-logo', auth, upload.single('file'), (req,res)=>{
+  if (!req.file) return res.status(400).json({error:'No file'});
+  const db=readDB(); const url=`/uploads/${req.file.filename}`;
+  db.settings.loader_logo_url=url; writeDB(db); res.json({success:true,url});
+});
 app.post('/api/admin/upload/background', auth, upload.single('file'), (req,res)=>{
   if (!req.file) return res.status(400).json({error:'No file'});
   const db=readDB(); const url=`/uploads/${req.file.filename}`;

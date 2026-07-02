@@ -58,7 +58,7 @@ const defaultData = {
   settings: {
     site_name:"Team ESP",
     tagline:"Premium PUBG Subscriptions at the best price. Safe, Fast & Trusted Service.",
-    logo_url:"", favicon_url:"",
+    logo_url:"", favicon_url:"", loader_logo_url:"", logo_size:40,
     background_url:"", background_enabled:false, background_opacity:0.15,
     telegram:"@crew_r47", whatsapp:"+923157744430", instagram:"x.691337", discord:"ig.4kky",
     binance_id:"303792532", binance_name:"AkifShehroz",
@@ -98,6 +98,8 @@ function readDB() {
     }
     if (!data.settings.logo_url)          data.settings.logo_url = '';
     if (!data.settings.favicon_url)       data.settings.favicon_url = '';
+    if (!data.settings.loader_logo_url)   data.settings.loader_logo_url = '';
+    if (!data.settings.logo_size)         data.settings.logo_size = 40;
     if (!data.settings.background_url)    data.settings.background_url = '';
     if (data.settings.background_enabled === undefined) data.settings.background_enabled = false;
     if (data.settings.background_opacity === undefined) data.settings.background_opacity = 0.15;

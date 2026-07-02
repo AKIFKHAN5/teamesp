@@ -265,20 +265,28 @@ function closeAnnouncement() {
 }
 
 function applyLogo(s) {
-  if (!s.logo_url) return;
-  // Navbar
-  const ni = document.getElementById('navLogoIcon');
-  const nm = document.getElementById('navLogoImg');
-  if (ni&&nm) { ni.style.display='none'; nm.src=s.logo_url; nm.style.display='block'; }
-  // Loader
-  const li = document.getElementById('loaderIcon');
-  const lm = document.getElementById('loaderLogo');
-  if (li&&lm) { li.style.display='none'; lm.src=s.logo_url; lm.style.display='block'; }
-  // Footer
-  const fi = document.getElementById('footerLogoIcon');
-  const fm = document.getElementById('footerLogoImg');
-  if (fi&&fm) { fi.style.display='none'; fm.src=s.logo_url; fm.style.display='block'; }
-  // Favicon
+  // ── Navbar logo (with size control) ──
+  const logoSize = s.logo_size || 40;
+  if (s.logo_url) {
+    const ni = document.getElementById('navLogoIcon');
+    const nm = document.getElementById('navLogoImg');
+    if (ni&&nm) { ni.style.display='none'; nm.src=s.logo_url; nm.style.display='block'; nm.style.height=logoSize+'px'; }
+    const fi = document.getElementById('footerLogoIcon');
+    const fm = document.getElementById('footerLogoImg');
+    if (fi&&fm) { fi.style.display='none'; fm.src=s.logo_url; fm.style.display='block'; }
+  } else {
+    // No custom logo — still apply size to the default icon box
+    const ni = document.getElementById('navLogoIcon');
+    if (ni) { ni.style.width=logoSize+'px'; ni.style.height=logoSize+'px'; ni.style.fontSize=(logoSize*0.44)+'px'; }
+  }
+  // ── Loading screen logo (SEPARATE from navbar) ──
+  const loaderLogo = s.loader_logo_url || s.logo_url; // fallback to main logo if not set
+  if (loaderLogo) {
+    const li = document.getElementById('loaderIcon');
+    const lm = document.getElementById('loaderLogo');
+    if (li&&lm) { li.style.display='none'; lm.src=loaderLogo; lm.style.display='block'; }
+  }
+  // ── Favicon ──
   if (s.favicon_url) {
     const fv = document.getElementById('faviconEl');
     if (fv) fv.href = s.favicon_url;
