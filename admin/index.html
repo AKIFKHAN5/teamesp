@@ -710,6 +710,59 @@ label{font-size:11px;font-weight:700;letter-spacing:0.5px;color:var(--text2);tex
             </div>
           </div>
         </div>
+
+        <!-- PAYMENT METHOD ICONS -->
+        <div class="form-section">
+          <h3><i class="fas fa-credit-card"></i> Payment Method Icons</h3>
+          <p style="color:var(--text2);font-size:13px;margin-bottom:18px;">Upload custom PNG icons for each payment method shown on your homepage. Leave empty to use the default icon.</p>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;">
+
+            <!-- Binance -->
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center;">
+              <h4 style="font-size:12px;font-weight:800;color:var(--gold);margin-bottom:12px;letter-spacing:1px;">BINANCE PAY</h4>
+              <div style="width:64px;height:64px;margin:0 auto 12px;border-radius:12px;background:var(--bg);border:1px dashed var(--border2);display:flex;align-items:center;justify-content:center;overflow:hidden;" id="pay-preview-binance">
+                <i class="fas fa-coins" style="font-size:24px;color:var(--gold);"></i>
+              </div>
+              <label for="pay-file-binance" style="display:block;padding:8px;background:linear-gradient(135deg,var(--gold-d),var(--gold));color:#000;font-size:11px;font-weight:800;border-radius:6px;cursor:pointer;letter-spacing:0.5px;"><i class="fas fa-upload"></i> UPLOAD</label>
+              <input type="file" id="pay-file-binance" accept="image/*" style="display:none;" onchange="uploadPaymentIcon('binance',this)"/>
+              <button onclick="removePaymentIcon('binance')" style="background:transparent;color:var(--red);font-size:10px;margin-top:6px;cursor:pointer;">Remove</button>
+            </div>
+
+            <!-- EasyPaisa -->
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center;">
+              <h4 style="font-size:12px;font-weight:800;color:var(--gold);margin-bottom:12px;letter-spacing:1px;">EASYPAISA</h4>
+              <div style="width:64px;height:64px;margin:0 auto 12px;border-radius:12px;background:var(--bg);border:1px dashed var(--border2);display:flex;align-items:center;justify-content:center;overflow:hidden;" id="pay-preview-easypaisa">
+                <i class="fas fa-mobile-alt" style="font-size:24px;color:#00A651;"></i>
+              </div>
+              <label for="pay-file-easypaisa" style="display:block;padding:8px;background:linear-gradient(135deg,var(--gold-d),var(--gold));color:#000;font-size:11px;font-weight:800;border-radius:6px;cursor:pointer;letter-spacing:0.5px;"><i class="fas fa-upload"></i> UPLOAD</label>
+              <input type="file" id="pay-file-easypaisa" accept="image/*" style="display:none;" onchange="uploadPaymentIcon('easypaisa',this)"/>
+              <button onclick="removePaymentIcon('easypaisa')" style="background:transparent;color:var(--red);font-size:10px;margin-top:6px;cursor:pointer;">Remove</button>
+            </div>
+
+            <!-- JazzCash -->
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center;">
+              <h4 style="font-size:12px;font-weight:800;color:var(--gold);margin-bottom:12px;letter-spacing:1px;">JAZZCASH</h4>
+              <div style="width:64px;height:64px;margin:0 auto 12px;border-radius:12px;background:var(--bg);border:1px dashed var(--border2);display:flex;align-items:center;justify-content:center;overflow:hidden;" id="pay-preview-jazzcash">
+                <i class="fas fa-mobile-alt" style="font-size:24px;color:#EE0029;"></i>
+              </div>
+              <label for="pay-file-jazzcash" style="display:block;padding:8px;background:linear-gradient(135deg,var(--gold-d),var(--gold));color:#000;font-size:11px;font-weight:800;border-radius:6px;cursor:pointer;letter-spacing:0.5px;"><i class="fas fa-upload"></i> UPLOAD</label>
+              <input type="file" id="pay-file-jazzcash" accept="image/*" style="display:none;" onchange="uploadPaymentIcon('jazzcash',this)"/>
+              <button onclick="removePaymentIcon('jazzcash')" style="background:transparent;color:var(--red);font-size:10px;margin-top:6px;cursor:pointer;">Remove</button>
+            </div>
+
+            <!-- Card / Stripe -->
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center;">
+              <h4 style="font-size:12px;font-weight:800;color:var(--gold);margin-bottom:12px;letter-spacing:1px;">CARD / STRIPE</h4>
+              <div style="width:64px;height:64px;margin:0 auto 12px;border-radius:12px;background:var(--bg);border:1px dashed var(--border2);display:flex;align-items:center;justify-content:center;overflow:hidden;" id="pay-preview-card">
+                <i class="fas fa-credit-card" style="font-size:24px;color:#635BFF;"></i>
+              </div>
+              <label for="pay-file-card" style="display:block;padding:8px;background:linear-gradient(135deg,var(--gold-d),var(--gold));color:#000;font-size:11px;font-weight:800;border-radius:6px;cursor:pointer;letter-spacing:0.5px;"><i class="fas fa-upload"></i> UPLOAD</label>
+              <input type="file" id="pay-file-card" accept="image/*" style="display:none;" onchange="uploadPaymentIcon('card',this)"/>
+              <button onclick="removePaymentIcon('card')" style="background:transparent;color:var(--red);font-size:10px;margin-top:6px;cursor:pointer;">Remove</button>
+            </div>
+
+          </div>
+        </div>
       </div>
 
       <!-- SETTINGS -->
@@ -1773,7 +1826,48 @@ async function loadAppearance() {
     const opacity = s.background_opacity || 0.15;
     document.getElementById('bg-opacity').value = opacity;
     document.getElementById('bg-opacity-display').textContent = Math.round(opacity*100)+'%';
+    // Payment icon previews
+    const payDefaults = {
+      binance:   '<i class="fas fa-coins" style="font-size:24px;color:var(--gold);"></i>',
+      easypaisa: '<i class="fas fa-mobile-alt" style="font-size:24px;color:#00A651;"></i>',
+      jazzcash:  '<i class="fas fa-mobile-alt" style="font-size:24px;color:#EE0029;"></i>',
+      card:      '<i class="fas fa-credit-card" style="font-size:24px;color:#635BFF;"></i>'
+    };
+    ['binance','easypaisa','jazzcash','card'].forEach(m => {
+      const prev = document.getElementById(`pay-preview-${m}`);
+      const url = s[`pay_icon_${m}`];
+      if (prev) prev.innerHTML = url ? `<img src="${url}" style="width:100%;height:100%;object-fit:contain;">` : payDefaults[m];
+    });
   } catch(e) {}
+}
+
+async function uploadPaymentIcon(method, input) {
+  if (!input.files.length) return;
+  const fd = new FormData();
+  fd.append('file', input.files[0]);
+  try {
+    const res = await fetch(`/api/admin/upload/payment-icon/${method}`, {
+      method:'POST',
+      headers:{ 'Authorization': `Bearer ${token}` },
+      body: fd
+    });
+    const d = await res.json();
+    if (d.success) {
+      toast(`${method} icon uploaded!`, 'success');
+      const prev = document.getElementById(`pay-preview-${method}`);
+      if (prev) prev.innerHTML = `<img src="${d.url}" style="width:100%;height:100%;object-fit:contain;">`;
+    } else toast(d.error || 'Upload failed', 'error');
+  } catch(e) { toast('Upload failed', 'error'); }
+  input.value = '';
+}
+
+async function removePaymentIcon(method) {
+  if (!confirm(`Remove the ${method} icon?`)) return;
+  try {
+    await api('PUT', '/api/admin/settings', { [`pay_icon_${method}`]: '' });
+    toast(`${method} icon removed`, 'success');
+    loadAppearance();
+  } catch(e) { toast('Failed to remove', 'error'); }
 }
 
 function onLogoSizeChange(val) {

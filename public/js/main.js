@@ -315,6 +315,16 @@ function applySettings(s) {
   if(sc) sc.setAttribute('data-target', parseInt(s.happy_customers||'5000'));
   const sr=document.getElementById('stat-rating');
   if(sr) sr.textContent=(s.rating||'4.9/5').split('/')[0];
+
+  // ── Payment method custom icons ──
+  const payIcon = (id, url) => {
+    const el = document.getElementById(id);
+    if (el && url) el.innerHTML = `<img src="${url}" alt="" style="width:36px;height:36px;object-fit:contain;border-radius:8px;">`;
+  };
+  payIcon('pm-logo-binance',   s.pay_icon_binance);
+  payIcon('pm-logo-easypaisa', s.pay_icon_easypaisa);
+  payIcon('pm-logo-jazzcash',  s.pay_icon_jazzcash);
+  payIcon('pm-logo-card',      s.pay_icon_card);
 }
 
 function applyContent() {

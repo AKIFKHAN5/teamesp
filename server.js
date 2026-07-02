@@ -374,6 +374,18 @@ app.post('/api/admin/upload/icon', auth, upload.single('file'), (req,res)=>{
   if (!req.file) return res.status(400).json({error:'No file'});
   res.json({success:true, url:`/uploads/${req.file.filename}`});
 });
+// Payment method icon upload — key must be binance|easypaisa|jazzcash|card
+app.post('/api/admin/upload/payment-icon/:method', auth, upload.single('file'), (req,res)=>{
+  if (!req.file) return res.status(400).json({error:'No file'});
+  const allowed = ['binance','easypaisa','jazzcash','card'];
+  const m = req.params.method;
+  if (!allowed.includes(m)) return res.status(400).json({error:'Invalid method'});
+  const db = readDB();
+  const url = `/uploads/${req.file.filename}`;
+  db.settings[`pay_icon_${m}`] = url;
+  writeDB(db);
+  res.json({success:true, url});
+});
 
 // Product images
 app.post('/api/admin/product/upload-image', auth, upload.single('image'), (req,res)=>{

@@ -64,6 +64,7 @@ const defaultData = {
     binance_id:"303792532", binance_name:"AkifShehroz",
     easypaisa:"03402455177", easypaisa_name:"AKIF SHEHROZ",
     jazzcash:"03402455177", jazzcash_name:"AKIF SHEHROZ",
+    pay_icon_binance:"", pay_icon_easypaisa:"", pay_icon_jazzcash:"", pay_icon_card:"",
     happy_customers:"5000+", delivery_time:"1-5 MIN", rating:"4.9/5",
     admin_password_hash:"$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi"
   },
@@ -100,6 +101,10 @@ function readDB() {
     if (!data.settings.favicon_url)       data.settings.favicon_url = '';
     if (!data.settings.loader_logo_url)   data.settings.loader_logo_url = '';
     if (!data.settings.logo_size)         data.settings.logo_size = 40;
+    if (!data.settings.pay_icon_binance)  data.settings.pay_icon_binance = '';
+    if (!data.settings.pay_icon_easypaisa)data.settings.pay_icon_easypaisa = '';
+    if (!data.settings.pay_icon_jazzcash) data.settings.pay_icon_jazzcash = '';
+    if (!data.settings.pay_icon_card)     data.settings.pay_icon_card = '';
     if (!data.settings.background_url)    data.settings.background_url = '';
     if (data.settings.background_enabled === undefined) data.settings.background_enabled = false;
     if (data.settings.background_opacity === undefined) data.settings.background_opacity = 0.15;
