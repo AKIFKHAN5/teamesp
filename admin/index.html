@@ -208,7 +208,7 @@ label{font-size:11px;font-weight:700;letter-spacing:0.5px;color:var(--text2);tex
       <label>Admin Password</label>
       <input type="password" id="loginPassword" placeholder="Enter admin password" onkeydown="if(event.key==='Enter')doLogin()"/>
     </div>
-    <button class="login-btn" onclick="doLogin()">
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">
       <i class="fas fa-sign-in-alt"></i> LOGIN TO DASHBOARD
     </button>
   </div>
@@ -790,11 +790,27 @@ if (token) showAdminUI();
 
 let lockoutTimer = null;
 
+function getLoginBtn() {
+  return document.getElementById('loginBtn')
+      || document.querySelector('#loginPage .login-btn')
+      || document.querySelector('#loginPage button');
+}
+
 async function doLogin() {
-  const pw = document.getElementById('loginPassword').value;
+  const pwInput = document.getElementById('loginPassword');
+  const pw = pwInput.value;
   const errEl = document.getElementById('loginErr');
-  const btnEl = document.querySelector('#loginPage .login-btn') || document.querySelector('#loginPage button');
+  const btnEl = getLoginBtn();
+
+  // If a lockout countdown is still running, don't allow submit
+  if (lockoutTimer) return;
+
   if (!pw) return;
+
+  // Reset any stale disabled/error state before trying
+  pwInput.disabled = false;
+  if (btnEl) { btnEl.disabled = false; btnEl.style.opacity = '1'; }
+
   try {
     const res = await fetch('/api/admin/login', {
       method: 'POST',
@@ -802,6 +818,7 @@ async function doLogin() {
       body: JSON.stringify({ password: pw })
     });
     const data = await res.json();
+
     if (data.token) {
       token = data.token;
       localStorage.setItem('teamesp_token', token);
@@ -809,7 +826,6 @@ async function doLogin() {
       if (lockoutTimer) { clearInterval(lockoutTimer); lockoutTimer = null; }
       showAdminUI();
     } else if (data.locked && data.remainingSeconds) {
-      // Locked out — show live countdown, disable input
       startLockoutCountdown(data.remainingSeconds, errEl, btnEl);
     } else {
       errEl.textContent = data.error || 'Incorrect password. Please try again.';
@@ -836,9 +852,11 @@ function startLockoutCountdown(seconds, errEl, btnEl) {
 
   function tick() {
     if (remaining <= 0) {
-      clearInterval(lockoutTimer); lockoutTimer = null;
-      errEl.innerHTML = '🔓 Lockout expired. You may try again.';
-      if (pwInput) pwInput.disabled = false;
+      clearInterval(lockoutTimer);
+      lockoutTimer = null;
+      errEl.classList.remove('show');
+      errEl.textContent = '';
+      if (pwInput) { pwInput.disabled = false; pwInput.value = ''; pwInput.focus(); }
       if (btnEl) { btnEl.disabled = false; btnEl.style.opacity = '1'; }
       return;
     }

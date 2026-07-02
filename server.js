@@ -62,7 +62,11 @@ function recordFailure(ip) {
   const locks = readLockouts();
   const now = Date.now();
   let rec = locks[ip] || { failCount: 0, firstFail: now, lockedUntil: 0 };
-  // Reset counter if last activity was long ago
+  // If a previous lockout has fully expired, start the counter fresh
+  if (rec.lockedUntil && now >= rec.lockedUntil) {
+    rec = { failCount: 0, firstFail: now, lockedUntil: 0 };
+  }
+  // Reset counter if last activity was long ago (and not currently locked)
   if (rec.lastFail && (now - rec.lastFail) > ATTEMPT_WINDOW_MS && !rec.lockedUntil) {
     rec.failCount = 0;
   }
