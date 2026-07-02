@@ -284,6 +284,16 @@ app.delete('/api/admin/product/gallery', auth, (req,res)=>{
 // Features, Versions
 app.put('/api/admin/features', auth, (req,res)=>{ const db=readDB(); db.features=req.body; writeDB(db); res.json({success:true}); });
 app.put('/api/admin/versions', auth, (req,res)=>{ const db=readDB(); db.versions=req.body; writeDB(db); res.json({success:true}); });
+app.post('/api/admin/versions/:id/upload-icon', auth, upload.single('file'), (req,res)=>{
+  if (!req.file) return res.status(400).json({error:'No file'});
+  const db=readDB();
+  const idx = db.versions.findIndex(v => v.id == req.params.id);
+  if (idx === -1) return res.status(404).json({error:'Version not found'});
+  const url = `/uploads/${req.file.filename}`;
+  db.versions[idx].icon = url;
+  writeDB(db);
+  res.json({success:true, url});
+});
 
 // COUPONS
 app.get('/api/admin/coupons', auth, (_,res)=>{ const db=readDB(); res.json(db.coupons||[]); });

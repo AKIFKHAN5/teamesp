@@ -254,6 +254,9 @@ label{font-size:11px;font-weight:700;letter-spacing:0.5px;color:var(--text2);tex
       <a href="#" onclick="showPage('faq',this)">
         <i class="fas fa-question-circle"></i> FAQ
       </a>
+      <a href="#" onclick="showPage('versions',this)">
+        <i class="fas fa-mobile-alt"></i> Versions
+      </a>
       <a href="#" onclick="showPage('appearance',this)">
         <i class="fas fa-palette"></i> Appearance
       </a>
@@ -602,6 +605,18 @@ label{font-size:11px;font-weight:700;letter-spacing:0.5px;color:var(--text2);tex
         </div>
       </div>
 
+      <!-- VERSIONS PAGE -->
+      <div class="page-section" id="page-versions">
+        <div class="form-section">
+          <h3><i class="fas fa-mobile-alt"></i> Supported Versions</h3>
+          <p style="color:var(--text2);font-size:13px;margin-bottom:18px;">Manage the PUBG versions shown on your homepage. Upload a custom PNG icon for each version, edit names/packages, or toggle supported status.</p>
+          <div id="versionsEditor"></div>
+          <div class="form-actions" style="margin-top:16px;">
+            <button class="btn-save" onclick="addVersion()"><i class="fas fa-plus"></i> Add New Version</button>
+          </div>
+        </div>
+      </div>
+
       <!-- APPEARANCE PAGE -->
       <div class="page-section" id="page-appearance">
         <div class="form-section">
@@ -826,13 +841,15 @@ async function api(method, url, body) {
 const pageIcons = {
   dashboard: 'fa-tachometer-alt', products: 'fa-box', orders: 'fa-shopping-cart',
   reviews: 'fa-star', faq: 'fa-question-circle', settings: 'fa-cog',
-  coupons: 'fa-tag', announcement: 'fa-bullhorn', maintenance: 'fa-tools', appearance: 'fa-palette'
+  coupons: 'fa-tag', announcement: 'fa-bullhorn', maintenance: 'fa-tools', appearance: 'fa-palette',
+  versions: 'fa-mobile-alt'
 };
 const pageTitles = {
   dashboard: 'Dashboard', products: 'Products', orders: 'Orders',
   reviews: 'Reviews', faq: 'FAQ', settings: 'Settings',
   coupons: 'Coupons & Discounts', announcement: 'Announcement Bar',
-  maintenance: 'Maintenance Mode', appearance: 'Appearance & Branding'
+  maintenance: 'Maintenance Mode', appearance: 'Appearance & Branding',
+  versions: 'Supported Versions'
 };
 
 function showPage(page, el) {
@@ -846,7 +863,8 @@ function showPage(page, el) {
     products: loadProducts, orders: loadOrders, reviews: loadReviews,
     faq: loadFaq, settings: loadSettings,
     coupons: loadCoupons, announcement: loadAnnouncement,
-    maintenance: loadMaintenance, appearance: loadAppearance
+    maintenance: loadMaintenance, appearance: loadAppearance,
+    versions: loadVersions
   };
   if (loaders[page]) loaders[page]();
   return false;
@@ -1774,6 +1792,123 @@ async function saveBackgroundSettings() {
   };
   try { await api('PUT', '/api/admin/settings', body); toast('Background settings saved!', 'success'); }
   catch(e) { toast('Failed to save', 'error'); }
+}
+
+// ═══ VERSIONS ═══════════════════════════════
+let allVersions = [];
+
+async function loadVersions() {
+  try {
+    const data = await api('GET', '/api/admin/dashboard');
+    allVersions = data.versions || [];
+    renderVersionsEditor();
+  } catch(e) {}
+}
+
+function renderVersionsEditor() {
+  const wrap = document.getElementById('versionsEditor');
+  if (!wrap) return;
+  if (!allVersions.length) {
+    wrap.innerHTML = '<p style="color:var(--text3);text-align:center;padding:20px;">No versions yet. Click "Add New Version" below.</p>';
+    return;
+  }
+  wrap.innerHTML = allVersions.map((v, i) => `
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:12px;">
+      <div style="display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap;">
+        <!-- Icon uploader -->
+        <div style="text-align:center;flex-shrink:0;">
+          <div style="width:80px;height:80px;border-radius:50%;background:var(--bg);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:8px;" id="ver-icon-preview-${v.id}">
+            ${v.icon ? `<img src="${v.icon}" style="width:100%;height:100%;object-fit:cover;">` : `<i class="fas fa-mobile-alt" style="font-size:32px;color:var(--gold);"></i>`}
+          </div>
+          <label for="ver-icon-${v.id}" style="display:block;padding:6px 10px;background:linear-gradient(135deg,var(--gold-d),var(--gold));color:#000;font-size:10px;font-weight:800;border-radius:6px;text-align:center;cursor:pointer;letter-spacing:0.5px;white-space:nowrap;">
+            <i class="fas fa-upload"></i> UPLOAD PNG
+          </label>
+          <input type="file" id="ver-icon-${v.id}" accept="image/*" style="display:none;" onchange="uploadVersionIcon(${v.id}, this)"/>
+          ${v.icon ? `<button onclick="removeVersionIcon(${v.id})" style="background:transparent;color:var(--red);font-size:10px;margin-top:5px;cursor:pointer;">Remove icon</button>` : ''}
+        </div>
+        <!-- Fields -->
+        <div style="flex:1;min-width:220px;">
+          <div class="form-grid">
+            <div class="fg"><label>Version Name</label><input id="ver-name-${v.id}" value="${v.name || ''}" placeholder="Global"/></div>
+            <div class="fg"><label>Package Name</label><input id="ver-package-${v.id}" value="${v.package || ''}" placeholder="com.tencent.ig"/></div>
+            <div class="fg">
+              <label>Status</label>
+              <select id="ver-supported-${v.id}" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:11px 14px;font-size:13px;color:var(--text);">
+                <option value="true" ${v.supported!==false?'selected':''}>✓ Supported</option>
+                <option value="false" ${v.supported===false?'selected':''}>Coming Soon</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            <button class="btn-save" style="padding:9px 16px;font-size:12px;" onclick="saveVersion(${v.id})"><i class="fas fa-save"></i> Save</button>
+            <button class="btn-cancel" style="padding:9px 16px;font-size:12px;" onclick="deleteVersion(${v.id})"><i class="fas fa-trash"></i> Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function uploadVersionIcon(id, input) {
+  if (!input.files.length) return;
+  const fd = new FormData();
+  fd.append('file', input.files[0]);
+  try {
+    const res = await fetch(`/api/admin/versions/${id}/upload-icon`, {
+      method:'POST',
+      headers:{ 'Authorization': `Bearer ${token}` },
+      body: fd
+    });
+    const d = await res.json();
+    if (d.success) {
+      toast('Icon uploaded!', 'success');
+      // Update preview immediately
+      document.getElementById(`ver-icon-preview-${id}`).innerHTML = `<img src="${d.url}" style="width:100%;height:100%;object-fit:cover;">`;
+      const v = allVersions.find(x => x.id == id); if (v) v.icon = d.url;
+      renderVersionsEditor();
+    } else toast(d.error || 'Upload failed', 'error');
+  } catch(e) { toast('Upload failed', 'error'); }
+  input.value = '';
+}
+
+async function removeVersionIcon(id) {
+  const v = allVersions.find(x => x.id == id);
+  if (!v) return;
+  v.icon = '';
+  await saveAllVersions();
+  renderVersionsEditor();
+  toast('Icon removed', 'success');
+}
+
+async function saveVersion(id) {
+  const v = allVersions.find(x => x.id == id);
+  if (!v) return;
+  v.name = document.getElementById(`ver-name-${id}`).value.trim();
+  v.package = document.getElementById(`ver-package-${id}`).value.trim();
+  v.supported = document.getElementById(`ver-supported-${id}`).value === 'true';
+  await saveAllVersions();
+  toast(`${v.name} saved!`, 'success');
+}
+
+async function addVersion() {
+  const newId = Date.now();
+  allVersions.push({ id: newId, name: 'New Version', package: 'com.example.pubg', icon: '', supported: true });
+  await saveAllVersions();
+  renderVersionsEditor();
+  toast('Version added — edit its details above', 'success');
+}
+
+async function deleteVersion(id) {
+  if (!confirm('Delete this version?')) return;
+  allVersions = allVersions.filter(v => v.id != id);
+  await saveAllVersions();
+  renderVersionsEditor();
+  toast('Version deleted', 'success');
+}
+
+async function saveAllVersions() {
+  try { await api('PUT', '/api/admin/versions', allVersions); }
+  catch(e) { toast('Failed to save versions', 'error'); }
 }
 
 // Coupon delete now handled via main confirmDelete urlMap
