@@ -9,6 +9,7 @@ const rateLimit = require('express-rate-limit');
 const { readDB, writeDB } = require('./db/database');
 
 const app = express();
+app.set('trust proxy', 1); // trust first proxy (Railway/Nginx) for real client IP
 const JWT_SECRET = process.env.JWT_SECRET || 'teamesp_super_secret_2024';
 
 // Security headers
@@ -19,6 +20,76 @@ app.use((req,res,next)=>{
   res.setHeader('Referrer-Policy','strict-origin-when-cross-origin');
   next();
 });
+
+// ─── BRUTE-FORCE LOCKOUT (server-side, IP-based, persistent) ─────────────────
+const LOCKOUT_FILE = path.join(__dirname, 'db', 'lockouts.json');
+// Progressive lockout: after N failures, lock for escalating durations
+const LOCK_TIERS = [
+  { fails: 3,  lockMs: 1  * 60 * 1000 },   // 3 fails  → 1 min
+  { fails: 5,  lockMs: 5  * 60 * 1000 },   // 5 fails  → 5 min
+  { fails: 7,  lockMs: 15 * 60 * 1000 },   // 7 fails  → 15 min
+  { fails: 10, lockMs: 60 * 60 * 1000 },   // 10 fails → 1 hour
+  { fails: 15, lockMs: 24 * 60 * 60 * 1000 } // 15 fails → 24 hours
+];
+const ATTEMPT_WINDOW_MS = 30 * 60 * 1000; // failures older than 30 min don't count toward tier escalation
+
+function readLockouts() {
+  try {
+    if (!fs.existsSync(LOCKOUT_FILE)) return {};
+    return JSON.parse(fs.readFileSync(LOCKOUT_FILE, 'utf8'));
+  } catch(e) { return {}; }
+}
+function writeLockouts(data) {
+  try { fs.writeFileSync(LOCKOUT_FILE, JSON.stringify(data, null, 2)); } catch(e) {}
+}
+function getClientIp(req) {
+  // Trust proxy headers (Railway/Nginx put real IP here), fallback to socket
+  const xff = req.headers['x-forwarded-for'];
+  if (xff) return xff.split(',')[0].trim();
+  return req.socket?.remoteAddress || 'unknown';
+}
+// Returns { locked: bool, remainingMs, failCount }
+function checkLock(ip) {
+  const locks = readLockouts();
+  const rec = locks[ip];
+  if (!rec) return { locked: false, failCount: 0 };
+  if (rec.lockedUntil && Date.now() < rec.lockedUntil) {
+    return { locked: true, remainingMs: rec.lockedUntil - Date.now(), failCount: rec.failCount };
+  }
+  return { locked: false, failCount: rec.failCount || 0 };
+}
+function recordFailure(ip) {
+  const locks = readLockouts();
+  const now = Date.now();
+  let rec = locks[ip] || { failCount: 0, firstFail: now, lockedUntil: 0 };
+  // Reset counter if last activity was long ago
+  if (rec.lastFail && (now - rec.lastFail) > ATTEMPT_WINDOW_MS && !rec.lockedUntil) {
+    rec.failCount = 0;
+  }
+  rec.failCount = (rec.failCount || 0) + 1;
+  rec.lastFail = now;
+  // Determine lock duration based on tier reached
+  let lockMs = 0;
+  for (const tier of LOCK_TIERS) {
+    if (rec.failCount >= tier.fails) lockMs = tier.lockMs;
+  }
+  if (lockMs > 0) rec.lockedUntil = now + lockMs;
+  locks[ip] = rec;
+  writeLockouts(locks);
+  return { failCount: rec.failCount, lockMs, lockedUntil: rec.lockedUntil };
+}
+function clearFailures(ip) {
+  const locks = readLockouts();
+  if (locks[ip]) { delete locks[ip]; writeLockouts(locks); }
+}
+function fmtDuration(ms) {
+  const s = Math.ceil(ms / 1000);
+  if (s < 60) return `${s} second${s!==1?'s':''}`;
+  const m = Math.ceil(s / 60);
+  if (m < 60) return `${m} minute${m!==1?'s':''}`;
+  const h = Math.ceil(m / 60);
+  return `${h} hour${h!==1?'s':''}`;
+}
 
 // Multer
 const uploadsDir = path.join(__dirname,'public','uploads');
@@ -195,11 +266,49 @@ app.post('/api/chat', (req,res)=>{
 
 // ═══ ADMIN ═══
 app.post('/api/admin/login', loginLimiter, async(req,res)=>{
+  const ip = getClientIp(req);
+
+  // 1. Check if this IP is currently locked
+  const lock = checkLock(ip);
+  if (lock.locked) {
+    return res.status(429).json({
+      error: `Too many failed attempts. Locked for ${fmtDuration(lock.remainingMs)}.`,
+      locked: true,
+      remainingMs: lock.remainingMs,
+      remainingSeconds: Math.ceil(lock.remainingMs / 1000)
+    });
+  }
+
   const { password } = req.body;
   if (!password) return res.status(400).json({error:'Password required'});
+
   const db = readDB();
   const valid = await bcrypt.compare(password, db.settings.admin_password_hash);
-  if (!valid) return res.status(401).json({error:'Invalid password'});
+
+  if (!valid) {
+    // 2. Record the failure and possibly lock
+    const result = recordFailure(ip);
+    if (result.lockMs > 0) {
+      return res.status(429).json({
+        error: `Too many failed attempts. Locked for ${fmtDuration(result.lockMs)}.`,
+        locked: true,
+        remainingMs: result.lockMs,
+        remainingSeconds: Math.ceil(result.lockMs / 1000)
+      });
+    }
+    // Warn how many attempts remain before next lock tier
+    const nextTier = LOCK_TIERS.find(t => t.fails > result.failCount);
+    const remaining = nextTier ? nextTier.fails - result.failCount : 0;
+    return res.status(401).json({
+      error: remaining > 0
+        ? `Invalid password. ${remaining} attempt${remaining!==1?'s':''} left before lockout.`
+        : 'Invalid password.',
+      attemptsLeft: remaining
+    });
+  }
+
+  // 3. Success — clear any failure history for this IP
+  clearFailures(ip);
   const token = jwt.sign({admin:true}, JWT_SECRET, {expiresIn:'24h'});
   res.json({token});
 });

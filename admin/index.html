@@ -788,8 +788,12 @@ let allFaq = [];
 // ─── AUTH ──────────────────────────────────
 if (token) showAdminUI();
 
+let lockoutTimer = null;
+
 async function doLogin() {
   const pw = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginErr');
+  const btnEl = document.querySelector('#loginPage .login-btn') || document.querySelector('#loginPage button');
   if (!pw) return;
   try {
     const res = await fetch('/api/admin/login', {
@@ -801,15 +805,51 @@ async function doLogin() {
     if (data.token) {
       token = data.token;
       localStorage.setItem('teamesp_token', token);
-      document.getElementById('loginErr').classList.remove('show');
+      errEl.classList.remove('show');
+      if (lockoutTimer) { clearInterval(lockoutTimer); lockoutTimer = null; }
       showAdminUI();
+    } else if (data.locked && data.remainingSeconds) {
+      // Locked out — show live countdown, disable input
+      startLockoutCountdown(data.remainingSeconds, errEl, btnEl);
     } else {
-      document.getElementById('loginErr').classList.add('show');
+      errEl.textContent = data.error || 'Incorrect password. Please try again.';
+      errEl.classList.add('show');
     }
   } catch (e) {
-    document.getElementById('loginErr').textContent = 'Connection error. Please try again.';
-    document.getElementById('loginErr').classList.add('show');
+    errEl.textContent = 'Connection error. Please try again.';
+    errEl.classList.add('show');
   }
+}
+
+function startLockoutCountdown(seconds, errEl, btnEl) {
+  const pwInput = document.getElementById('loginPassword');
+  if (lockoutTimer) clearInterval(lockoutTimer);
+  let remaining = seconds;
+
+  function fmt(s) {
+    if (s < 60) return `${s}s`;
+    const m = Math.floor(s / 60), sec = s % 60;
+    if (m < 60) return `${m}m ${sec}s`;
+    const h = Math.floor(m / 60), min = m % 60;
+    return `${h}h ${min}m`;
+  }
+
+  function tick() {
+    if (remaining <= 0) {
+      clearInterval(lockoutTimer); lockoutTimer = null;
+      errEl.innerHTML = '🔓 Lockout expired. You may try again.';
+      if (pwInput) pwInput.disabled = false;
+      if (btnEl) { btnEl.disabled = false; btnEl.style.opacity = '1'; }
+      return;
+    }
+    errEl.innerHTML = `🔒 Too many failed attempts.<br>Locked — try again in <strong>${fmt(remaining)}</strong>`;
+    errEl.classList.add('show');
+    if (pwInput) pwInput.disabled = true;
+    if (btnEl) { btnEl.disabled = true; btnEl.style.opacity = '0.5'; }
+    remaining--;
+  }
+  tick();
+  lockoutTimer = setInterval(tick, 1000);
 }
 
 function showAdminUI() {
